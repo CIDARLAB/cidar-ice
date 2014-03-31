@@ -10,8 +10,8 @@
         <!-- Database connection settings -->
         <property name="hibernate.connection.url">jdbc:postgresql://localhost/ice</property>
         <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
-        <property name="hibernate.connection.username">postgres</property>
-        <property name="hibernate.connection.password">black bug room</property>
+        <property name="hibernate.connection.username">ice</property>
+        <property name="hibernate.connection.password">white walker</property>
         <!-- SQL dialect: use the correct one for your database -->
         <property name="dialect">org.hibernate.dialect.PostgreSQL82Dialect</property>
 
