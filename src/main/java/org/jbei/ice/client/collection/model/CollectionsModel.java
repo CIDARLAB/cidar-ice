@@ -1,5 +1,6 @@
 package org.jbei.ice.client.collection.model;
 
+import com.google.gwt.core.client.GWT;
 import java.util.ArrayList;
 
 import org.jbei.ice.client.Callback;
@@ -326,7 +327,7 @@ public class CollectionsModel {
 
             @Override
             public void onSuccess(String result) {
-                Window.Location.replace("/download?id=" + result + "&type=tmp");
+                Window.Location.replace(GWT.getHostPageBaseURL()+"download?id=" + result + "&type=tmp");
             }
         }.go(eventBus);
 

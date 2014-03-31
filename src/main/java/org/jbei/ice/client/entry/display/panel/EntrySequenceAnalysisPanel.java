@@ -1,5 +1,6 @@
 package org.jbei.ice.client.entry.display.panel;
 
+import com.google.gwt.core.client.GWT;
 import java.util.ArrayList;
 
 import org.jbei.ice.client.ClientController;
@@ -129,7 +130,7 @@ public class EntrySequenceAnalysisPanel extends Composite {
 
     private Widget createSequenceUploadPanel() {
         final FormPanel formPanel = new FormPanel();
-        formPanel.setAction("/upload?sid=" + ClientController.sessionId + "&type=trace_sequence");
+        formPanel.setAction(GWT.getHostPageBaseURL()+"upload?sid=" + ClientController.sessionId + "&type=trace_sequence");
         formPanel.setEncoding(FormPanel.ENCODING_MULTIPART);
         formPanel.setMethod(FormPanel.METHOD_POST);
 

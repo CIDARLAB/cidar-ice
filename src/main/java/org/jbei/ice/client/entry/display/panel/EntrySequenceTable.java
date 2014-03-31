@@ -132,7 +132,7 @@ public class EntrySequenceTable extends Composite {
 
             @Override
             public SafeHtml getValue(SequenceAnalysisInfo info) {
-                return SafeHtmlUtils.fromSafeConstant("<a href=\"/download?type=sequence&id=" + info.getFileId()
+                return SafeHtmlUtils.fromSafeConstant("<a href=\""+GWT.getHostPageBaseURL()+"download?type=sequence&id=" + info.getFileId()
                                                               + "&name=" + info.getName() + "\">"
                                                               + info.getName() + "</a>");
             }

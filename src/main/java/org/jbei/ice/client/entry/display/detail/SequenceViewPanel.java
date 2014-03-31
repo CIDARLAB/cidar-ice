@@ -61,7 +61,7 @@ public class SequenceViewPanel extends Composite implements ISequenceView {
         // SBOL visual
         String imgUrl = "";
         if (partData.isHasSequence() && partData.getSbolVisualURL() != null) {
-            imgUrl = "<img height=\"170px\" src=\"/download?type=sbol_visual&id=" + partData.getSbolVisualURL()
+            imgUrl = "<img height=\"170px\" src=\""+GWT.getHostPageBaseURL()+"/download?type=sbol_visual&id=" + partData.getSbolVisualURL()
                     + "\" /><br>";
         }
 

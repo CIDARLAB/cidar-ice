@@ -70,7 +70,7 @@ public class UploadFile extends Composite {
                 if (addType == null)
                     return;
 
-                Window.Location.replace(ClientController.URI_PREFIX+"/download?type=template&add_type=" + addType.name());
+                Window.Location.replace(GWT.getHostPageBaseURL()+"download?type=template&add_type=" + addType.name());
             }
         });
     }
@@ -115,7 +115,7 @@ public class UploadFile extends Composite {
                 if (fileUpload.getFilename().isEmpty())
                     return;
 
-                String url = ClientController.URI_PREFIX+"/upload?sid=" + ClientController.sessionId + "&type=bulk_csv&upload=" + addType.name();
+                String url = GWT.getHostPageBaseURL()+"upload?sid=" + ClientController.sessionId + "&type=bulk_csv&upload=" + addType.name();
                 formPanel.setAction(url);
                 formPanel.submit();
                 layout.reset();

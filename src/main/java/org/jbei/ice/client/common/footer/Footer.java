@@ -1,5 +1,6 @@
 package org.jbei.ice.client.common.footer;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.*;
 
 public class Footer extends Composite {
@@ -65,7 +66,7 @@ public class Footer extends Composite {
         Anchor bugReport = new Anchor("Submit an Issue", "https://github.com/JBEI/ice/issues/new");
         line3.add(bugReport);
         line3.add(new HTML("&nbsp; | &nbsp;"));
-        Anchor api = new Anchor("API", "/api");
+        Anchor api = new Anchor("API", GWT.getHostPageBaseURL()+"api");
         line3.add(api);
         line3.add(new HTML("&nbsp; | &nbsp; v3.7.0"));
 

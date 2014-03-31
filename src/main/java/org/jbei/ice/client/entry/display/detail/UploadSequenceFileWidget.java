@@ -1,5 +1,6 @@
 package org.jbei.ice.client.entry.display.detail;
 
+import com.google.gwt.core.client.GWT;
 import org.jbei.ice.client.ClientController;
 import org.jbei.ice.client.common.widget.GenericPopup;
 import org.jbei.ice.client.common.widget.ICanReset;
@@ -46,7 +47,7 @@ public class UploadSequenceFileWidget extends Composite implements ICanReset {
         feedback.setVisible(false);
 
         formPanel = new FormPanel();
-        formPanel.setAction("/upload?sid=" + ClientController.sessionId + "&type=sequence");
+        formPanel.setAction(GWT.getHostPageBaseURL()+"upload?sid=" + ClientController.sessionId + "&type=sequence");
         formPanel.setEncoding(FormPanel.ENCODING_MULTIPART);
         formPanel.setMethod(FormPanel.METHOD_POST);
 

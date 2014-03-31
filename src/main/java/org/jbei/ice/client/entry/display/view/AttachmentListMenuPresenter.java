@@ -1,5 +1,6 @@
 package org.jbei.ice.client.entry.display.view;
 
+import com.google.gwt.core.client.GWT;
 import java.util.ArrayList;
 
 import org.jbei.ice.client.entry.display.handler.HasAttachmentDeleteHandler;
@@ -82,7 +83,7 @@ public class AttachmentListMenuPresenter {
 
             @Override
             public void onClick(ClickEvent event) {
-                Window.Location.replace("/download?type=attachment&name=" + item.getName() + "&id=" + item.getFileId());
+                Window.Location.replace(GWT.getHostPageBaseURL()+"download?type=attachment&name=" + item.getName() + "&id=" + item.getFileId());
             }
         };
     }

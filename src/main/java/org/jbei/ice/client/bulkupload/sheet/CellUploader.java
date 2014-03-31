@@ -1,5 +1,6 @@
 package org.jbei.ice.client.bulkupload.sheet;
 
+import com.google.gwt.core.client.GWT;
 import org.jbei.ice.client.ClientController;
 import org.jbei.ice.client.bulkupload.EntryInfoDelegate;
 import org.jbei.ice.client.common.widget.FAIconType;
@@ -88,7 +89,7 @@ public class CellUploader extends Composite {
             public void onSubmit(FormPanel.SubmitEvent event) {
                 currentId = delegate.getEntryIdForRow(currentRow);
                 long bid = delegate.getBulkUploadId();
-                formPanel.setAction("/upload?type=bulk_file_upload&is_sequence="
+                formPanel.setAction(GWT.getHostPageBaseURL()+"upload?type=bulk_file_upload&is_sequence="
                                             + Boolean.toString(sequenceUpload)
                                             + "&is_trace=" + Boolean.toString(traceSequenceUpload)
                                             + "&sid=" + ClientController.sessionId + "&eid=" + currentId

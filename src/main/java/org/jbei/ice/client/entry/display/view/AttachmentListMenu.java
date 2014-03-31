@@ -205,7 +205,7 @@ public class AttachmentListMenu extends Composite implements IAttachmentListMenu
             @Override
             public void onSubmit(FormPanel.SubmitEvent event) {
                 String descText = description.getText();
-                panel.setAction(GWT.getHostPageBaseURL()+"/upload?type=attachment&sid=" + ClientController.sessionId + "&eid=" + entryId
+                panel.setAction(GWT.getHostPageBaseURL()+"upload?type=attachment&sid=" + ClientController.sessionId + "&eid=" + entryId
                                         + "&desc=" + descText);
             }
         });

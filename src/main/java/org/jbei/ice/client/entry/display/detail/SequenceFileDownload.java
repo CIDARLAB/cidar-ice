@@ -76,7 +76,7 @@ class SequenceFileDownload implements IsWidget {
                 if (selected == null)
                     return;
                 popupHandler.hidePopup();
-                Window.Location.replace("/sequence?type=" + selected.getType() + "&entry="
+                Window.Location.replace(GWT.getHostPageBaseURL()+"sequence?type=" + selected.getType() + "&entry="
                                                 + entryId);
                 optionSelection.setSelected(selected, false);
             }

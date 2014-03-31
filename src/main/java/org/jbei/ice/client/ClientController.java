@@ -42,8 +42,6 @@ import com.google.gwt.user.client.ui.HasWidgets;
 
 public class ClientController extends AbstractPresenter implements ValueChangeHandler<String> {
     
-    //I hate you, GWT
-    public static final String URI_PREFIX = "https://cidar.bu.edu/cosbi-registry";
     // cookie times out in three days if user wants system to "remember" login
     private static final int COOKIE_TIMEOUT = (1000 * 60 * 60 * 24) * 3;
     // cookie times out in a day if not set to be remembered
