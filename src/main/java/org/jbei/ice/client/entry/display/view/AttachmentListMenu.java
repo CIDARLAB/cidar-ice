@@ -1,5 +1,6 @@
 package org.jbei.ice.client.entry.display.view;
 
+import com.google.gwt.core.client.GWT;
 import java.util.ArrayList;
 
 import org.jbei.ice.client.ClientController;
@@ -204,7 +205,7 @@ public class AttachmentListMenu extends Composite implements IAttachmentListMenu
             @Override
             public void onSubmit(FormPanel.SubmitEvent event) {
                 String descText = description.getText();
-                panel.setAction("/upload?type=attachment&sid=" + ClientController.sessionId + "&eid=" + entryId
+                panel.setAction(GWT.getHostPageBaseURL()+"/upload?type=attachment&sid=" + ClientController.sessionId + "&eid=" + entryId
                                         + "&desc=" + descText);
             }
         });
