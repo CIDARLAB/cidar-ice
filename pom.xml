@@ -244,6 +244,7 @@
     </dependencies>
     <build>
         <outputDirectory>target</outputDirectory>
+        <finalName>ice</finalName>
         <resources>
             <resource>
                 <filtering>false</filtering>
