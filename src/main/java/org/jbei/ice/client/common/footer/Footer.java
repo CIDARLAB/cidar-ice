@@ -25,20 +25,15 @@ public class Footer extends Composite {
 
         // create images
         HorizontalPanel panel = new HorizontalPanel();
-        panel.add(new Image("static/images/doe-bioenergy-research-cent.gif"));
-        panel.add(new Image("static/images/lbnl-logo.gif"));
-        panel.add(new Image("static/images/sandia-lab-logo.gif"));
-        panel.add(new Image("static/images/ucb-logo.gif"));
-        panel.add(new Image("static/images/ucdavis-logo.gif"));
-        panel.add(new Image("static/images/carnegie-insitution-logo.gif"));
-        panel.add(new Image("static/images/llnl-logo.gif"));
-        panel.add(new Image("static/images/pnw.png"));
+        panel.add(new Image("static/images/buGrayscale.png"));
+        panel.add(new Image("static/images/clothoGrayscale.png"));
+        panel.add(new Image("static/images/cidarGrayscale.png"));
 
         // add images to a table
         FlexTable contents = new FlexTable();
         contents.setWidth("100%");
         contents.setCellPadding(0);
-        contents.setCellSpacing(0);
+        contents.setCellSpacing(20);
         contents.setWidget(0, 0, panel);
         contents.setWidget(0, 1, getFooterText());
         contents.getCellFormatter().setHorizontalAlignment(0, 1, HasHorizontalAlignment.ALIGN_RIGHT);
@@ -59,7 +54,7 @@ public class Footer extends Composite {
         panel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
 
         HorizontalPanel line1 = new HorizontalPanel();
-        Anchor registry = new Anchor("JBEI Registry", "https://github.com/JBEI/ice");
+        Anchor registry = new Anchor("ICE Registry", "https://github.com/JBEI/ice");
         line1.add(new HTML("&copy;&nbsp;"));
         line1.add(registry);
 

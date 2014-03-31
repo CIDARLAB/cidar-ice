@@ -96,21 +96,23 @@ public class LoginView extends Composite implements ILoginView {
         loginMessagePanel = new HTML();
         loginMessagePanel.setStyleName("login_message_panel");
         loginMessagePanel.setHTML(
-                "The Joint BioEnergy Institute (<a href=\"http://www.jbei.org\" target=\"_blank\">JBEI</a>) "
-                        + "is a San Francisco Bay Area scientific partnership led by "
-                        + "<a href=\"http://www.lbl.gov\" target=\"_blank\">Lawrence Berkeley National Laboratory</a> "
-                        + "and including the <a href=\"http://www.sandia.gov\" target=\"_blank\">"
-                        + "Sandia National Laboratories</a>, the "
-                        + "<a href=\"http://www.universityofcalifornia.edu\" target=\"_blank\">University of "
-                        + "California</a> campuses of Berkeley and Davis, the "
-                        + "<a href=\"http://carnegiescience.edu\" target=\"_blank\">Carnegie Institution for "
-                        + "Science</a>, <a href=\"http://www.llnl.gov\" target=\"_blank\">"
-                        + "Lawrence Livermore National Laboratory</a>, and "
-                        + "<a href=\"http://www.pnnl.gov\" target=\"_blank\">Pacific Northwest National Laboratory</a>."
-                        + "<p>JBEI's primary scientific mission is to advance the development of the next generation "
-                        + "of biofuels - drop-in liquid fuels derived from the solar energy stored in plant biomass. "
-                        + "JBEI is one of three U.S. <a href=\"http://energy.gov\" target=\"_blank\">Department of "
-                        + "Energy</a> Bioenergy Research Centers.");
+                "The Center of Synthetic Biology (CoSBi) at Boston University "
+                + "brings together core faculty members that bridge diverse "
+                + "areas of synthetic biology research, including microbial "
+                + "engineering, immuno-engineering, computer-aided design (CAD)"
+                + " and automation, single-cell analyses, and dynamical systems"
+                + " modeling. CoSBi  focuses its abilities to: (1) rapidly "
+                + "reconstruct and analyze genome-scale microbial networks, and"
+                + " (2) model, design and construct synthetic gene networks "
+                + "with novel functions." 
+                +"<p>"
+                + "This repository of biological data represents CoSBi's efforts"
+                + " to disseminate information rapidly to be used in a variety "
+                + "of external research projects. A key goal of this repository"
+                + " is to enable the large scale bio-design automation efforts"
+                + " of researchers interested in computational methods to "
+                + "enhance the speed, quality, and cost effectiveness of "
+                + "synthetic biology.");
     }
 
     private void addKeyHandlerToClearErrorInput(final TextBox box) {
