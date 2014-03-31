@@ -21,6 +21,8 @@ import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
+import org.jbei.ice.lib.shared.dto.ConfigurationKey;
+import org.jbei.ice.lib.utils.Utils;
 
 /**
  * Widget to enable upload of csv files. Places a "CSV Upload" label
@@ -69,7 +71,7 @@ public class UploadFile extends Composite {
                 if (addType == null)
                     return;
 
-                Window.Location.replace("/download?type=template&add_type=" + addType.name());
+                Window.Location.replace(Utils.getConfigValue(ConfigurationKey.URI_PREFIX)+"/download?type=template&add_type=" + addType.name());
             }
         });
     }
@@ -114,7 +116,7 @@ public class UploadFile extends Composite {
                 if (fileUpload.getFilename().isEmpty())
                     return;
 
-                String url = "/upload?sid=" + ClientController.sessionId + "&type=bulk_csv&upload=" + addType.name();
+                String url = Utils.getConfigValue(ConfigurationKey.URI_PREFIX)+"/upload?sid=" + ClientController.sessionId + "&type=bulk_csv&upload=" + addType.name();
                 formPanel.setAction(url);
                 formPanel.submit();
                 layout.reset();
