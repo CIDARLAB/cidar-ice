@@ -3,7 +3,8 @@ package org.jbei.ice.lib.entry.sample.model;
 import java.util.Date;
 import javax.persistence.*;
 
-import org.jbei.ice.lib.dao.IModel;
+import org.jbei.ice.lib.dao.IDataModel;
+import org.jbei.ice.lib.dto.sample.PartSample;
 import org.jbei.ice.lib.entry.model.Entry;
 import org.jbei.ice.lib.entry.model.EntryBooleanPropertiesBridge;
 import org.jbei.ice.lib.models.Storage;
@@ -24,7 +25,7 @@ import org.hibernate.search.annotations.FieldBridge;
 @Entity
 @Table(name = "samples")
 @SequenceGenerator(name = "sequence", sequenceName = "samples_id_seq", allocationSize = 1)
-public class Sample implements IModel {
+public class Sample implements IDataModel {
 
     private static final long serialVersionUID = 1L;
 
@@ -139,5 +140,13 @@ public class Sample implements IModel {
 
     public void setStorage(Storage locationNew) {
         storage = locationNew;
+    }
+
+    @Override
+    public PartSample toDataTransferObject() {
+        PartSample sample = new PartSample();
+        sample.setLabel(label);
+        sample.setCreationTime(creationTime.getTime());
+        return sample;
     }
 }

@@ -5,11 +5,10 @@ package org.jbei.ice.lib.account;
 
 import org.jbei.ice.lib.AccountCreator;
 import org.jbei.ice.lib.account.model.Account;
-import org.jbei.ice.lib.dao.hibernate.HibernateHelper;
-import org.jbei.ice.lib.shared.dto.user.User;
+import org.jbei.ice.lib.dao.hibernate.HibernateUtil;
 
-import junit.framework.Assert;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,14 +23,14 @@ public class AccountControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        HibernateHelper.initializeMock();
-        HibernateHelper.beginTransaction();
+        HibernateUtil.initializeMock();
+        HibernateUtil.beginTransaction();
         controller = new AccountController();
     }
 
     @After
     public void tearDown() throws Exception {
-        HibernateHelper.rollbackTransaction();
+        HibernateUtil.rollbackTransaction();
     }
 
     @Test
@@ -45,7 +44,6 @@ public class AccountControllerTest {
         account.setLastName("Last");
         account.setDescription("Desc");
         account.setInitials("FL");
-        account.setIsSubscribed(1);
         account.setPassword("plom");
         account.setIp("");
         account.setInstitution("");
@@ -66,26 +64,26 @@ public class AccountControllerTest {
     public void testResetPassword() throws Exception {
         Account account = AccountCreator.createTestAccount("testResetPassword", false);
         String oldPassword = account.getPassword();
-        controller.resetPassword(account.getEmail(), false, null);
+        Assert.assertTrue(controller.resetPassword(account.getEmail()));
         Assert.assertFalse(oldPassword.equalsIgnoreCase(account.getPassword()));
     }
 
     @Test
     public void testUpdatePassword() throws Exception {
         Account account = AccountCreator.createTestAccount("testUpdatePassword", false);
-        controller.updatePassword(account.getEmail(), "p455W0rd");
-        Assert.assertTrue(controller.isValidPassword(account, "p455W0rd"));
-        Assert.assertFalse(controller.isValidPassword(account, "p455W0rd1"));
+        AccountTransfer transfer = account.toDataTransferObject();
+        transfer.setPassword("p455W0rd");
+        controller.updatePassword(account.getEmail(), transfer);
     }
 
     @Test
     public void testCreateNewAccount() throws Exception {
-        User info = new User();
+        AccountTransfer info = new AccountTransfer();
         info.setEmail("testCreateNewAccount");
         info.setFirstName("Test");
         info.setLastName("Test");
-        String password = controller.createNewAccount(info, false);
-        Assert.assertNotNull(password);
+        info = controller.createNewAccount(info, false);
+        Assert.assertNotNull(info.getPassword());
     }
 
     @Test
@@ -102,7 +100,6 @@ public class AccountControllerTest {
         account.setLastName("Last");
         account.setDescription("Desc");
         account.setInitials("FL");
-        account.setIsSubscribed(1);
         account.setPassword("plom");
         account.setIp("");
         account.setInstitution("");
@@ -120,18 +117,12 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void testIsValidPassword() throws Exception {
-        Account account = AccountCreator.createTestAccount("testIsValidPassword", false);
-        controller.updatePassword(account.getEmail(), "p455W0rd");
-        Assert.assertTrue(controller.isValidPassword(account, "p455W0rd"));
-        Assert.assertFalse(controller.isValidPassword(account, "p455W0rd1"));
-    }
-
-    @Test
     public void testGetAccountBySessionKey() throws Exception {
         Account account = AccountCreator.createTestAccount("testGetAccountBySessionKey", false);
-        controller.updatePassword(account.getEmail(), "p4ssw0rd");
-        User info = controller.authenticate(account.getEmail(), "p4ssw0rd");
+        AccountTransfer transfer = account.toDataTransferObject();
+        transfer.setPassword("p455W0rd");
+        controller.updatePassword(account.getEmail(), transfer);
+        AccountTransfer info = controller.authenticate(new AccountTransfer(account.getEmail(), "p455W0rd"));
         Assert.assertNotNull(info);
         Assert.assertFalse(info.getSessionId().isEmpty());
         Account sessIdAccount = controller.getAccountBySessionKey(info.getSessionId());

@@ -1,15 +1,17 @@
 package org.jbei.ice.lib.entry.sample.model;
 
-import java.util.Date;
-import javax.persistence.*;
-
 import org.jbei.ice.lib.account.model.Account;
-import org.jbei.ice.lib.dao.IModel;
+import org.jbei.ice.lib.dao.IDataModel;
+import org.jbei.ice.lib.dto.entry.EntryType;
+import org.jbei.ice.lib.dto.entry.PartData;
+import org.jbei.ice.lib.dto.sample.SampleRequest;
+import org.jbei.ice.lib.dto.sample.SampleRequestStatus;
+import org.jbei.ice.lib.dto.sample.SampleRequestType;
+import org.jbei.ice.lib.entry.EntryUtil;
 import org.jbei.ice.lib.entry.model.Entry;
-import org.jbei.ice.lib.shared.dto.entry.PartData;
-import org.jbei.ice.lib.shared.dto.sample.SampleRequest;
-import org.jbei.ice.lib.shared.dto.sample.SampleRequestStatus;
-import org.jbei.ice.lib.shared.dto.sample.SampleRequestType;
+
+import javax.persistence.*;
+import java.util.Date;
 
 /**
  * Storage data model for sample requests
@@ -19,7 +21,7 @@ import org.jbei.ice.lib.shared.dto.sample.SampleRequestType;
 @Entity
 @Table(name = "REQUEST")
 @SequenceGenerator(name = "sequence", sequenceName = "request_id_seq", allocationSize = 1)
-public class Request implements IModel {
+public class Request implements IDataModel {
 
     private static final long serialVersionUID = 1L;
 
@@ -46,6 +48,9 @@ public class Request implements IModel {
     @Column(name = "request_type")
     @Enumerated(value = EnumType.STRING)
     private SampleRequestType type;
+
+    @Column(name = "growth_temp")
+    private Integer growthTemperature;
 
     @Column(name = "request_status")
     @Enumerated(value = EnumType.STRING)
@@ -95,6 +100,10 @@ public class Request implements IModel {
         this.status = requestStatus;
     }
 
+    public void setGrowthTemperature(int growthTemperature) {
+        this.growthTemperature = growthTemperature;
+    }
+
     public Entry getEntry() {
         return entry;
     }
@@ -103,20 +112,24 @@ public class Request implements IModel {
         this.entry = entry;
     }
 
-    public static SampleRequest toDTO(Request request) {
+    @Override
+    public SampleRequest toDataTransferObject() {
         SampleRequest sampleRequest = new SampleRequest();
-        sampleRequest.setId(request.getId());
-        sampleRequest.setRequestType(request.getType());
-        sampleRequest.setStatus(request.getStatus());
-        PartData data = new PartData();
-        Entry entry = request.getEntry();
+        sampleRequest.setId(getId());
+        sampleRequest.setRequestType(getType());
+        sampleRequest.setStatus(getStatus());
+        if (growthTemperature != null)
+        sampleRequest.setGrowthTemperature(growthTemperature);
+        EntryType type = EntryType.nameToType(entry.getRecordType());
+        PartData data = new PartData(type);
         data.setId(entry.getId());
         data.setPartId(entry.getPartNumber());
+        data.setSelectionMarkers(EntryUtil.getSelectionMarkersAsList(entry.getSelectionMarkers()));
+        data.setName(entry.getName());
         sampleRequest.setPartData(data);
-        sampleRequest.setRequester(Account.toDTO(request.getAccount()));
-        sampleRequest.setRequestTime(request.getRequested().getTime());
-        sampleRequest.setUpdateTime(request.getUpdated() == null
-                                            ? sampleRequest.getRequestTime() : request.getUpdated().getTime());
+        sampleRequest.setRequester(getAccount().toDataTransferObject());
+        sampleRequest.setRequestTime(getRequested().getTime());
+        sampleRequest.setUpdateTime(getUpdated() == null ? sampleRequest.getRequestTime() : getUpdated().getTime());
         return sampleRequest;
     }
 }

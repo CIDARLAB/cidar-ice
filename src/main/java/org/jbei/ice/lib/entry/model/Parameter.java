@@ -2,9 +2,11 @@ package org.jbei.ice.lib.entry.model;
 
 import javax.persistence.*;
 
-import org.jbei.ice.lib.dao.IModel;
+import org.jbei.ice.lib.dao.IDataModel;
+import org.jbei.ice.lib.dto.entry.CustomField;
 
 import org.hibernate.search.annotations.ContainedIn;
+import org.hibernate.search.annotations.Field;
 
 /**
  * Stores key-value information for {@link org.jbei.ice.lib.entry.model.Entry}.
@@ -21,7 +23,7 @@ import org.hibernate.search.annotations.ContainedIn;
 @Entity
 @Table(name = "parameters")
 @SequenceGenerator(name = "sequence", sequenceName = "parameters_id_seq", allocationSize = 1)
-public class Parameter implements IModel {
+public class Parameter implements IDataModel {
 
     private static final long serialVersionUID = 1L;
 
@@ -41,6 +43,7 @@ public class Parameter implements IModel {
     private String key;
 
     @Column(name = "value", length = 4095, nullable = false)
+    @Field
     private String value;
 
     public Parameter() {
@@ -77,5 +80,10 @@ public class Parameter implements IModel {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    @Override
+    public CustomField toDataTransferObject() {
+        return new CustomField(key, value);
     }
 }

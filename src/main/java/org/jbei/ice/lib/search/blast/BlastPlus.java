@@ -1,49 +1,5 @@
 package org.jbei.ice.lib.search.blast;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.StringWriter;
-import java.nio.channels.FileLock;
-import java.nio.channels.OverlappingFileLockException;
-import java.nio.charset.Charset;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import org.jbei.ice.controllers.ControllerFactory;
-import org.jbei.ice.controllers.common.ControllerException;
-import org.jbei.ice.lib.account.model.Account;
-import org.jbei.ice.lib.entry.sequence.SequenceController;
-import org.jbei.ice.lib.logging.Logger;
-import org.jbei.ice.lib.models.Sequence;
-import org.jbei.ice.lib.shared.dto.ConfigurationKey;
-import org.jbei.ice.lib.shared.dto.entry.ArabidopsisSeedData;
-import org.jbei.ice.lib.shared.dto.entry.EntryType;
-import org.jbei.ice.lib.shared.dto.entry.PartData;
-import org.jbei.ice.lib.shared.dto.entry.PlasmidData;
-import org.jbei.ice.lib.shared.dto.entry.StrainData;
-import org.jbei.ice.lib.shared.dto.search.BlastProgram;
-import org.jbei.ice.lib.shared.dto.search.BlastQuery;
-import org.jbei.ice.lib.shared.dto.search.SearchResult;
-import org.jbei.ice.lib.utils.SequenceUtils;
-import org.jbei.ice.lib.utils.Utils;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -51,6 +7,27 @@ import org.biojava.bio.seq.DNATools;
 import org.biojava.bio.seq.RNATools;
 import org.biojava.bio.symbol.IllegalSymbolException;
 import org.biojava.bio.symbol.SymbolList;
+import org.jbei.ice.lib.common.logging.Logger;
+import org.jbei.ice.lib.dao.DAOFactory;
+import org.jbei.ice.lib.dto.ConfigurationKey;
+import org.jbei.ice.lib.dto.entry.EntryType;
+import org.jbei.ice.lib.dto.entry.PartData;
+import org.jbei.ice.lib.dto.search.BlastProgram;
+import org.jbei.ice.lib.dto.search.BlastQuery;
+import org.jbei.ice.lib.dto.search.SearchResult;
+import org.jbei.ice.lib.entry.EntryRetriever;
+import org.jbei.ice.lib.models.Sequence;
+import org.jbei.ice.lib.utils.SequenceUtils;
+import org.jbei.ice.lib.utils.Utils;
+
+import java.io.*;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+import java.nio.charset.Charset;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Blast Search functionality for BLAST+
@@ -64,7 +41,7 @@ public class BlastPlus {
     private static final String DELIMITER = ",";
     private static final String LOCK_FILE_NAME = "write.lock";
 
-    public static HashMap<String, SearchResult> runBlast(Account account, BlastQuery query) throws BlastException {
+    public static HashMap<String, SearchResult> runBlast(BlastQuery query) throws BlastException {
         try {
             String command = Utils.getConfigValue(ConfigurationKey.BLAST_INSTALL_DIR) + File.separator
                     + query.getBlastProgram().getName();
@@ -90,12 +67,11 @@ public class BlastPlus {
                     return processBlastOutput(reader.toString(), query.getSequence().length());
 
                 case 1:
-                    Logger.error(account.getEmail() + ": Error in query sequence(s) or BLAST options: "
-                                         + error.toString());
+                    Logger.error("Error in query sequence(s) or BLAST options: " + error.toString());
                     break;
 
                 case 2:
-                    Logger.error(account.getEmail() + ": Error in BLAST database: " + error.toString());
+                    Logger.error("Error in BLAST database: " + error.toString());
                     break;
 
                 default:
@@ -123,26 +99,7 @@ public class BlastPlus {
             name = idLineFields[2];
             partNumber = idLineFields[3];
 
-            PartData view;
-            switch (recordType) {
-                case PART:
-                default:
-                    view = new PartData();
-                    break;
-
-                case ARABIDOPSIS:
-                    view = new ArabidopsisSeedData();
-                    break;
-
-                case PLASMID:
-                    view = new PlasmidData();
-                    break;
-
-                case STRAIN:
-                    view = new StrainData();
-                    break;
-            }
-
+            PartData view = new PartData(recordType);
             view.setId(id);
             view.setPartId(partNumber);
             view.setName(name);
@@ -150,20 +107,16 @@ public class BlastPlus {
             info = new SearchResult();
             info.setEntryInfo(view);
 
-            try {
-                String summary = ControllerFactory.getEntryController().getEntrySummary(info.getEntryInfo().getId());
-                info.getEntryInfo().setShortDescription(summary);
-            } catch (ControllerException e) {
-                Logger.error(e);
-            }
+            String summary = new EntryRetriever().getEntrySummary(info.getEntryInfo().getId());
+            info.getEntryInfo().setShortDescription(summary);
 //                searchResult.setAlignmentLength(alignmentLength);
 //                searchResult.setPercentId(percentId);
         }
         return info;
     }
 
-    private static HashMap<String, SearchResult> processBlastOutput(String blastOutput, int queryLength) {
-        HashMap<String, SearchResult> hashMap = new HashMap<>();
+    private static LinkedHashMap<String, SearchResult> processBlastOutput(String blastOutput, int queryLength) {
+        LinkedHashMap<String, SearchResult> hashMap = new LinkedHashMap<>();
 
         ArrayList<String> lines = new ArrayList<>(Arrays.asList(blastOutput.split("\n")));
 
@@ -250,12 +203,20 @@ public class BlastPlus {
         String dataDir = Utils.getConfigValue(ConfigurationKey.DATA_DIRECTORY);
         final Path blastFolder = Paths.get(dataDir, BLAST_DB_FOLDER);
         File lockFile = Paths.get(blastFolder.toString(), LOCK_FILE_NAME).toFile();
-        if (lockFile.exists())
-            return;
+        if (lockFile.exists()) {
+            if (lockFile.lastModified() <= (System.currentTimeMillis() - (1000 * 60 * 60 * 24)))
+                lockFile.delete();
+            else {
+                Logger.info("Blast db locked (lockfile - " + lockFile.getAbsolutePath() + "). Rebuild aborted!");
+                return;
+            }
+        }
 
         try {
-            if (!Files.exists(blastFolder))
+            if (!Files.exists(blastFolder)) {
+                Logger.info("Blast folder (" + blastFolder.toString() + ") does not exist. Creating...");
                 Files.createDirectories(blastFolder);
+            }
 
             if (!force && blastDatabaseExists()) {
                 Logger.info("Blast database found in " + blastFolder.toAbsolutePath().toString());
@@ -278,6 +239,7 @@ public class BlastPlus {
         } catch (OverlappingFileLockException l) {
             Logger.warn("Could not obtain lock file for blast at " + blastFolder.toString());
         } catch (IOException eio) {
+            FileUtils.deleteQuietly(lockFile);
             throw new BlastException(eio);
         }
         FileUtils.deleteQuietly(lockFile);
@@ -299,6 +261,9 @@ public class BlastPlus {
         try {
             Path queryFilePath = Files.write(Files.createTempFile("query-", ".seq"), query.getBytes());
             Path subjectFilePath = Files.write(Files.createTempFile("subject-", ".seq"), subject.getBytes());
+            if (queryFilePath == null || subjectFilePath == null)
+                throw new BlastException("Subject or query is null");
+
             StringBuilder command = new StringBuilder();
             String blastN = Utils.getConfigValue(ConfigurationKey.BLAST_INSTALL_DIR) + File.separator
                     + BlastProgram.BLAST_N.getName();
@@ -441,17 +406,11 @@ public class BlastPlus {
     /**
      * Retrieve all the sequences from the database, and writes it out to a fasta file on disk.
      *
-     * @param writer filewriter to write to.
      * @throws BlastException
      */
     private static void writeBigFastaFile(BufferedWriter writer) throws BlastException {
         Set<Sequence> sequencesList;
-        SequenceController sequenceController = ControllerFactory.getSequenceController();
-        try {
-            sequencesList = sequenceController.getAllSequences();
-        } catch (ControllerException e) {
-            throw new BlastException(e);
-        }
+        sequencesList = DAOFactory.getSequenceDAO().getAllSequences();
         for (Sequence sequence : sequencesList) {
             long id = sequence.getEntry().getId();
 //            boolean circular = false;

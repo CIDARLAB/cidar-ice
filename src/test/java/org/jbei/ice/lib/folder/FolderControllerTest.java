@@ -1,23 +1,27 @@
 package org.jbei.ice.lib.folder;
 
+import org.jbei.ice.lib.AccountCreator;
+import org.jbei.ice.lib.TestEntryCreator;
+import org.jbei.ice.lib.access.PermissionsController;
+import org.jbei.ice.lib.account.model.Account;
+import org.jbei.ice.lib.dao.DAOFactory;
+import org.jbei.ice.lib.dao.hibernate.HibernateUtil;
+import org.jbei.ice.lib.dto.entry.PartData;
+import org.jbei.ice.lib.dto.folder.FolderDetails;
+import org.jbei.ice.lib.dto.permission.AccessPermission;
+import org.jbei.ice.lib.entry.model.Entry;
+import org.jbei.ice.lib.entry.model.Strain;
+import org.jbei.ice.lib.group.GroupController;
+import org.jbei.ice.lib.shared.ColumnField;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-
-import org.jbei.ice.lib.AccountCreator;
-import org.jbei.ice.lib.EntryCreator;
-import org.jbei.ice.lib.account.model.Account;
-import org.jbei.ice.lib.dao.hibernate.HibernateHelper;
-import org.jbei.ice.lib.entry.model.Entry;
-import org.jbei.ice.lib.entry.model.Strain;
-import org.jbei.ice.lib.shared.ColumnField;
-import org.jbei.ice.lib.shared.dto.entry.PartData;
-import org.jbei.ice.lib.shared.dto.folder.FolderDetails;
-
-import junit.framework.Assert;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import java.util.List;
 
 /**
  * @author Hector Plahar
@@ -28,49 +32,89 @@ public class FolderControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        HibernateHelper.initializeMock();
-        HibernateHelper.beginTransaction();
+        HibernateUtil.initializeMock();
+        HibernateUtil.beginTransaction();
         controller = new FolderController();
+    }
+
+    @Test
+    public void testGetPublicFolders() throws Exception {
+        Account account = AccountCreator.createTestAccount("testGetPublicFolders", false);
+        Assert.assertNotNull(account);
+        String userId = account.getEmail();
+
+        FolderDetails details = new FolderDetails();
+        details.setName("test1");
+        details = controller.createPersonalFolder(userId, details);
+        Assert.assertNotNull(details);
+
+        PermissionsController permissionsController = new PermissionsController();
+        AccessPermission accessPermission = new AccessPermission();
+        accessPermission.setArticle(AccessPermission.Article.GROUP);
+        long publicGroupId = new GroupController().createOrRetrievePublicGroup().getId();
+        accessPermission.setArticleId(publicGroupId);
+        accessPermission.setType(AccessPermission.Type.READ_FOLDER);
+        accessPermission.setTypeId(details.getId());
+        permissionsController.addPermission(userId, accessPermission);
+
+        ArrayList<FolderDetails> results = controller.getPublicFolders();
+        Assert.assertFalse(results.isEmpty());
+        Assert.assertEquals(details.getName(), results.get(0).getName());
     }
 
     @Test
     public void testCreateNewFolder() throws Exception {
         Account account = AccountCreator.createTestAccount("testCreateNewFolder", false);
-        FolderDetails folder = controller.createNewFolder(account, "test", "testing folder creation", null);
+        String userId = account.getEmail();
+        FolderDetails folderDetails = new FolderDetails();
+        folderDetails.setName("test");
+        FolderDetails folder = controller.createPersonalFolder(userId, folderDetails);
         Assert.assertNotNull(folder);
-        Folder f = controller.getFolderById(folder.getId());
+        Folder f = DAOFactory.getFolderDAO().get(folder.getId());
         Assert.assertNotNull(f);
         Assert.assertEquals("test", f.getName());
-        Assert.assertEquals("testing folder creation", f.getDescription());
     }
 
     @Test
     public void testRetrieveFolderContents() throws Exception {
+        // test with null id
+        controller.retrieveFolderContents(null, 0, ColumnField.PART_ID, false, 0, 10);
+
         Account account = AccountCreator.createTestAccount("testRetrieveFolderContents", false);
+        String userId = account.getEmail();
+
+        FolderDetails folderDetails = new FolderDetails();
+        folderDetails.setName("test");
 
         // create folder
-        FolderDetails folder = controller.createNewFolder(account, "test", "testing folder creation", null);
+        FolderDetails folder = controller.createPersonalFolder(userId, folderDetails);
         Assert.assertNotNull(folder);
         final short size = 105;
 
         // create 100 test strains
         HashMap<String, Entry> parts = new HashMap<>();
+        List<Long> entryList = new ArrayList<>();
         for (int i = 0; i < size; i += 1) {
-            Strain strain = EntryCreator.createTestStrain(account);
+            Strain strain = TestEntryCreator.createTestStrain(account);
             Assert.assertNotNull(strain);
             parts.put(strain.getPartNumber(), strain);
+            entryList.add(strain.getId());
         }
         Assert.assertEquals(size, parts.size());
 
         // add to folder
-        Folder added = controller.addFolderContents(account, folder.getId(), new ArrayList<Entry>(parts.values()));
-        Assert.assertNotNull(added);
+        List<FolderDetails> foldersToAdd = new ArrayList<>();
+        foldersToAdd.add(folder);
+        FolderContent folderContent = new FolderContent();
+        foldersToAdd = folderContent.addEntriesToFolders(account.getEmail(), entryList, foldersToAdd);
+        Assert.assertNotNull(foldersToAdd);
 
         // keep track to find duplicates
         HashSet<Long> set = new HashSet<>();
 
         // retrieve (supported sort types created, status, name, part_id, type)
-        FolderDetails details = controller.retrieveFolderContents(account, folder.getId(), ColumnField.PART_ID, false,
+        FolderDetails details = controller.retrieveFolderContents(account.getEmail(), folder.getId(),
+                                                                  ColumnField.PART_ID, false,
                                                                   0, 15);
         Assert.assertNotNull(details);
 
@@ -86,7 +130,7 @@ public class FolderControllerTest {
             }
             // check remaining
             Assert.assertEquals((size - (it * pageSize)), parts.size());
-            details = controller.retrieveFolderContents(account, folder.getId(), ColumnField.PART_ID, false,
+            details = controller.retrieveFolderContents(account.getEmail(), folder.getId(), ColumnField.PART_ID, false,
                                                         pageSize * it, pageSize);
             it += 1;
         }
@@ -94,6 +138,6 @@ public class FolderControllerTest {
 
     @After
     public void tearDown() throws Exception {
-        HibernateHelper.commitTransaction();
+        HibernateUtil.commitTransaction();
     }
 }

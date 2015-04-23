@@ -1,30 +1,26 @@
 package org.jbei.ice.lib.entry.model;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import javax.persistence.*;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-
-import org.jbei.ice.lib.dao.IModel;
+import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
+import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
+import org.hibernate.annotations.Type;
+import org.hibernate.search.annotations.*;
+import org.hibernate.search.annotations.Index;
+import org.jbei.ice.lib.access.Permission;
+import org.jbei.ice.lib.dao.IDataModel;
+import org.jbei.ice.lib.dto.entry.EntryType;
+import org.jbei.ice.lib.dto.entry.PartData;
+import org.jbei.ice.lib.dto.entry.Visibility;
 import org.jbei.ice.lib.entry.attachment.Attachment;
-import org.jbei.ice.lib.entry.filter.BlastFilterFactory;
 import org.jbei.ice.lib.entry.filter.EntryHasFilterFactory;
 import org.jbei.ice.lib.entry.filter.EntrySecurityFilterFactory;
 import org.jbei.ice.lib.entry.sample.model.Sample;
 import org.jbei.ice.lib.folder.Folder;
 import org.jbei.ice.lib.models.SelectionMarker;
 import org.jbei.ice.lib.models.Sequence;
-import org.jbei.ice.lib.permissions.model.Permission;
-import org.jbei.ice.lib.shared.dto.entry.Visibility;
+import org.jbei.ice.servlet.ModelToInfoFactory;
 
-import com.google.common.base.Objects;
-import org.hibernate.annotations.Type;
-import org.hibernate.search.annotations.*;
+import javax.persistence.*;
+import java.util.*;
 
 import org.jbei.ice.lib.entry.model.Parameter;
 
@@ -80,15 +76,18 @@ import org.jbei.ice.lib.entry.model.Parameter;
 @Entity
 @Indexed(index = "Entry")
 @FullTextFilterDefs({
-                            @FullTextFilterDef(name = "security", impl = EntrySecurityFilterFactory.class),
-                            @FullTextFilterDef(name = "blastFilter", impl = BlastFilterFactory.class),
-                            @FullTextFilterDef(name = "boolean", impl = EntryHasFilterFactory.class)
-                    })
+        @FullTextFilterDef(name = "security", impl = EntrySecurityFilterFactory.class, cache = FilterCacheModeType.INSTANCE_ONLY),
+        @FullTextFilterDef(name = "boolean", impl = EntryHasFilterFactory.class, cache = FilterCacheModeType.INSTANCE_ONLY)
+})
+@AnalyzerDef(name = "customanalyzer",
+        tokenizer = @TokenizerDef(factory = StandardTokenizerFactory.class),
+        filters = {
+                @TokenFilterDef(factory = LowerCaseFilterFactory.class),
+        })
 @Table(name = "entries")
 @SequenceGenerator(name = "sequence", sequenceName = "entries_id_seq", allocationSize = 1)
 @Inheritance(strategy = InheritanceType.JOINED)
-@XmlRootElement
-public class Entry implements IModel {
+public class Entry implements IDataModel {
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -132,7 +131,8 @@ public class Entry implements IModel {
     private String name;
 
     @Column(name = "part_number", length = 127)
-    @Field(boost = @Boost(2f), store = Store.YES, analyze = Analyze.NO)
+    @Analyzer(definition = "customanalyzer")
+    @Field(boost = @Boost(2f), store = Store.YES)
     private String partNumber;
 
     @Column(name = "keywords", length = 127)
@@ -198,6 +198,10 @@ public class Entry implements IModel {
     @Field
     private String principalInvestigator;
 
+    @Column(name = "principal_investigator_email", length = 127)
+    @Field(store = Store.YES, analyze = Analyze.NO)
+    private String principalInvestigatorEmail;
+
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "entry", orphanRemoval = true, fetch = FetchType.EAGER)
     @IndexedEmbedded(depth = 1)
     private Set<SelectionMarker> selectionMarkers = new LinkedHashSet<>();
@@ -211,7 +215,7 @@ public class Entry implements IModel {
     private final List<Parameter> parameters = new ArrayList<>();
 
     @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE}, mappedBy = "entry",
-               orphanRemoval = true, fetch = FetchType.EAGER)
+            orphanRemoval = true, fetch = FetchType.EAGER)
     @IndexedEmbedded(depth = 1)
     private final Set<Permission> permissions = new HashSet<>();
 
@@ -220,7 +224,7 @@ public class Entry implements IModel {
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
     @JoinTable(name = "entry_entry", joinColumns = {@JoinColumn(name = "entry_id", nullable = false)},
-               inverseJoinColumns = {@JoinColumn(name = "linked_entry_id", nullable = false)})
+            inverseJoinColumns = {@JoinColumn(name = "linked_entry_id", nullable = false)})
     private Set<Entry> linkedEntries = new HashSet<>();
 
     @OneToMany(orphanRemoval = true, fetch = FetchType.LAZY, mappedBy = "entry")
@@ -236,12 +240,9 @@ public class Entry implements IModel {
     private Sequence sequence;
 
     public Entry() {
-        setStatus("Complete");
         longDescriptionType = "text";
-        setBioSafetyLevel(1);
     }
 
-    @XmlTransient
     public long getId() {
         return id;
     }
@@ -258,7 +259,6 @@ public class Entry implements IModel {
         this.recordId = recordId;
     }
 
-    @XmlTransient
     public String getVersionId() {
         return versionId;
     }
@@ -267,7 +267,6 @@ public class Entry implements IModel {
         this.versionId = versionId;
     }
 
-    @XmlTransient
     public String getRecordType() {
         return recordType;
     }
@@ -328,15 +327,10 @@ public class Entry implements IModel {
         return selectionMarkers;
     }
 
-    /**
-     * Generate a String representation of the {@link SelectionMarker}s associated with this entry.
-     *
-     * @return Comma separated selection markers.
-     */
     public String getSelectionMarkersAsString() {
         String result;
         ArrayList<String> markers = new ArrayList<>();
-        for (SelectionMarker marker : selectionMarkers) {
+        for (SelectionMarker marker : this.selectionMarkers) {
             markers.add(marker.getName());
         }
         result = org.jbei.ice.lib.utils.Utils.join(", ", markers);
@@ -347,7 +341,6 @@ public class Entry implements IModel {
     public void setSelectionMarkers(Set<SelectionMarker> inputSelectionMarkers) {
         if (inputSelectionMarkers == null) {
             selectionMarkers.clear();
-
             return;
         }
 
@@ -361,22 +354,6 @@ public class Entry implements IModel {
 
     public Set<Link> getLinks() {
         return links;
-    }
-
-    /**
-     * String representation of {@link Link}s.
-     *
-     * @return Comma separated list of links.
-     */
-    public String getLinksAsString() {
-        String result;
-        ArrayList<String> links = new ArrayList<>();
-        for (Link link : this.links) {
-            links.add(link.getLink());
-        }
-        result = org.jbei.ice.lib.utils.Utils.join(", ", links);
-
-        return result;
     }
 
     public void setLinks(Set<Link> inputLinks) {
@@ -431,7 +408,6 @@ public class Entry implements IModel {
         this.references = references;
     }
 
-    @XmlTransient
     public Date getCreationTime() {
         return creationTime;
     }
@@ -440,7 +416,6 @@ public class Entry implements IModel {
         this.creationTime = creationTime;
     }
 
-    @XmlTransient
     public Date getModificationTime() {
         if (modificationTime == null)
             return creationTime;
@@ -504,7 +479,7 @@ public class Entry implements IModel {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId(), getRecordId());
+        return Objects.hash(id, getRecordId());
     }
 
     public Set<Folder> getFolders() {
@@ -541,9 +516,7 @@ public class Entry implements IModel {
 
         final Entry other = (Entry) obj;
 
-        return Objects.equal(this.recordId, other.getRecordId())
-                && Objects.equal(this.recordType, other.getRecordType())
-                && Objects.equal(this.getId(), other.getId());
+        return this.recordId.equals(other.getRecordId()) && this.id == other.getId();
     }
 
     public String getFundingSource() {
@@ -576,5 +549,18 @@ public class Entry implements IModel {
 
     public void setSequence(Sequence sequence) {
         this.sequence = sequence;
+    }
+
+    @Override
+    public PartData toDataTransferObject() {
+        return ModelToInfoFactory.getCommon(new PartData(EntryType.nameToType(this.getRecordType())), this);
+    }
+
+    public String getPrincipalInvestigatorEmail() {
+        return principalInvestigatorEmail;
+    }
+
+    public void setPrincipalInvestigatorEmail(String principalInvestigatorEmail) {
+        this.principalInvestigatorEmail = principalInvestigatorEmail;
     }
 }
