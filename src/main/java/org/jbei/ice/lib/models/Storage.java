@@ -5,7 +5,9 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.persistence.*;
 
-import org.jbei.ice.lib.dao.IModel;
+import org.jbei.ice.lib.dao.IDataModel;
+import org.jbei.ice.lib.dto.StorageLocation;
+import org.jbei.ice.lib.dto.sample.SampleType;
 
 /**
  * Store sample storage location information as well as the hierarchical structure information.
@@ -15,7 +17,7 @@ import org.jbei.ice.lib.dao.IModel;
  * First, this class stores the location information, identified by the name and index fields. For
  * example, a 96 well plate numbered 42 may have name="Plate" and index="42". The plate may have
  * children, say 96 of them. This class does not restrict the number of children, but a controller
- * may look at this class's {@link StorageType} field and determine the minimum and maximum number
+ * may look at this class's {@link SampleType} field and determine the minimum and maximum number
  * of children this storage unit can have.
  * <p/>
  * The children of Plate-42 will be 96 wells, with name="Well" and index numbered from "A1" to
@@ -59,12 +61,12 @@ import org.jbei.ice.lib.dao.IModel;
 @Entity
 @Table(name = "storage")
 @SequenceGenerator(name = "sequence", sequenceName = "storage_id_seq", allocationSize = 1)
-public class Storage implements IModel {
+public class Storage implements IDataModel {
 
     private static final long serialVersionUID = 1L;
 
     public enum StorageType {
-        GENERIC, FREEZER, SHELF, BOX_INDEXED, BOX_UNINDEXED, PLATE96, PLATE81, WELL, TUBE, SCHEME
+        GENERIC, ADDGENE, FREEZER, SHELF, BOX_INDEXED, BOX_UNINDEXED, PLATE96, PLATE81, WELL, TUBE, SCHEME
     }
 
     @Id
@@ -104,14 +106,6 @@ public class Storage implements IModel {
 
     public Storage() {
         super();
-    }
-
-    public Storage(String name, String description, StorageType storageType, String ownerEmail, Storage parent) {
-        setName(name);
-        setDescription(description);
-        setStorageType(storageType);
-        setOwnerEmail(ownerEmail);
-        setParent(parent);
     }
 
     public long getId() {
@@ -196,11 +190,12 @@ public class Storage implements IModel {
     }
 
     @Override
-    public String toString() {
-        if (getStorageType().equals(StorageType.SCHEME)) {
-            return getName();
-        } else {
-            return getName() + " " + getIndex();
-        }
+    public StorageLocation toDataTransferObject() {
+        StorageLocation location = new StorageLocation();
+        location.setDisplay(index);
+        location.setId(id);
+        location.setType(SampleType.toSampleType(storageType.name()));
+        location.setName(name);
+        return location;
     }
 }

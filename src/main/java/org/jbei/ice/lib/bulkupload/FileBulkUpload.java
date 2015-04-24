@@ -2,13 +2,13 @@ package org.jbei.ice.lib.bulkupload;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.List;
 
-import org.jbei.ice.lib.shared.EntryAddType;
-import org.jbei.ice.lib.shared.dto.bulkupload.EntryField;
+import org.jbei.ice.lib.dto.bulkupload.EntryField;
+import org.jbei.ice.lib.dto.entry.EntryType;
 
 /**
- * Bulk upload via files
+ * Processes bulk uploads. Supported file formats are "csv", "zip" and "xml", with the latter being for SBOL
  *
  * @author Hector Plahar
  */
@@ -16,46 +16,47 @@ public class FileBulkUpload {
 
     private final Path filePath;
     private final String account;
-    private final EntryAddType addType;
+    private final EntryType addType;
 
-    public FileBulkUpload(String account, Path path, EntryAddType addType) {
+    public FileBulkUpload(String account, Path path, EntryType addType) {
         this.account = account;
         this.filePath = path;
         this.addType = addType;
     }
 
-    public String process() throws IOException {
+    public long process() throws IOException {
         String fileName = filePath.toFile().getName();
 
         // process csv
         if (fileName.endsWith(".csv")) {
-            BulkCSVUpload upload = HelperFactory.createCSVUpload(account, addType, filePath);
+            BulkCSVUpload upload = new BulkCSVUpload(account, filePath, addType);
             return upload.processUpload();
         }
 
         // process zip
         if (fileName.endsWith(".zip")) {
             BulkZipUpload upload = new BulkZipUpload(account, filePath, addType);
-            return Long.toString(upload.processUpload());
+            return upload.processUpload();
         }
 
         // process sbol
         if (fileName.endsWith(".xml")) {
             BulkFileSBOLUpload upload = new BulkFileSBOLUpload(account, filePath, addType);
-            return Long.toString(upload.processUpload());
+            return upload.processUpload();
         }
 
-        throw new IOException("Unknown file type " + fileName);
+        throw new IOException("Unsupported file type " + fileName);
     }
 
     /**
      * Creates a CSV template for download based on the the type of entries
      *
      * @param addType entry type that is to be uploaded
+     * @param linked  type that is linked to this entry
      * @return byte array of the template or null if the headers for the type cannot be retrieved/is unsupported
      */
-    public static byte[] getCSVTemplateBytes(EntryAddType addType) {
-        ArrayList<EntryField> headers = BulkCSVUploadHeaders.getHeadersForType(addType);
+    public static byte[] getCSVTemplateBytes(EntryType addType, EntryType linked) {
+        List<EntryField> headers = BulkCSVUploadHeaders.getHeadersForType(addType);
         if (headers == null)
             return null;
 
@@ -66,10 +67,27 @@ public class FileBulkUpload {
             }
 
             sb.append('"');
-            sb.append(headers.get(i).toString());
-            if (BulkCSVUploadHeaders.isRequired(headers.get(i), addType))
+            EntryField header = headers.get(i);
+            sb.append(header.getLabel());
+            if (header.isRequired())
                 sb.append("*");
             sb.append('"');
+        }
+
+        // check linked
+        if (linked != null) {
+            headers = BulkCSVUploadHeaders.getHeadersForType(linked);
+            if (headers != null) {
+                for (int i = 0; i < headers.size(); i++) {
+                    sb.append(",");
+                    sb.append('"');
+                    EntryField header = headers.get(i);
+                    sb.append(linked.getDisplay()).append(" ").append(header.getLabel());
+                    if (header.isRequired())
+                        sb.append("*");
+                    sb.append('"');
+                }
+            }
         }
 
         sb.append("\n");

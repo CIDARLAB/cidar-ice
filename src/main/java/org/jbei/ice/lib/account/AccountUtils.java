@@ -1,8 +1,13 @@
 package org.jbei.ice.lib.account;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+
 import org.jbei.ice.lib.account.model.Account;
-import org.jbei.ice.lib.shared.dto.ConfigurationKey;
-import org.jbei.ice.lib.shared.dto.user.User;
+import org.jbei.ice.lib.common.logging.Logger;
 import org.jbei.ice.lib.utils.Utils;
 
 /**
@@ -21,27 +26,38 @@ public class AccountUtils {
     public static String encryptPassword(String password, String userSalt) {
         if (password == null || password.isEmpty())
             throw new IllegalArgumentException("Cannot encrypt null or empty password");
-        String salt = Utils.getConfigValue(ConfigurationKey.SECRET_KEY);
-        if (salt == null || salt.isEmpty())
-            salt = userSalt;
-        return Utils.encryptSHA(salt + password);
+        return Utils.encryptSHA(userSalt + password);
     }
 
-//    public static String encryptNewUserPassword(String password, String salt) throws UtilityException {
-//        if (password == null || password.trim().isEmpty() || salt == null || salt.trim().isEmpty())
-//            throw new UtilityException("Password and salt cannot be empty");
-//
-//        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 20000, 160);
-//
-//        try {
-//            SecretKeyFactory f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-//            return new String(f.generateSecret(spec).getEncoded());
-//        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-//            throw new UtilityException(e);
-//        }
-//    }
+    public static String encryptNewUserPassword(String password, String salt) {
+        if (password == null || password.trim().isEmpty() || salt == null || salt.trim().isEmpty())
+            throw new IllegalArgumentException("Password and salt cannot be empty");
 
-    public static Account fromDTO(User info) {
+        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt.getBytes(), 20000, 160);
+
+        try {
+            SecretKeyFactory f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+            byte[] hash = f.generateSecret(spec).getEncoded();
+            return bytesToHex(hash);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            Logger.error(e);
+            return null;
+        }
+    }
+
+    protected static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
+    public static Account fromDTO(AccountTransfer info) {
         Account account = new Account();
         account.setFirstName(info.getFirstName());
         account.setLastName(info.getLastName());
@@ -50,7 +66,6 @@ public class AccountUtils {
         account.setDescription(info.getDescription());
         account.setInstitution(info.getInstitution());
         account.setIp("");
-        account.setIsSubscribed(1);
         return account;
     }
 }

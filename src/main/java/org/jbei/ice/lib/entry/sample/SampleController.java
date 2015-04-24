@@ -1,22 +1,24 @@
 package org.jbei.ice.lib.entry.sample;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.jbei.ice.client.entry.display.model.SampleStorage;
-import org.jbei.ice.controllers.ControllerFactory;
-import org.jbei.ice.controllers.common.ControllerException;
+import org.jbei.ice.lib.account.AccountTransfer;
 import org.jbei.ice.lib.account.model.Account;
+import org.jbei.ice.lib.common.logging.Logger;
 import org.jbei.ice.lib.dao.DAOException;
-import org.jbei.ice.lib.entry.EntryController;
+import org.jbei.ice.lib.dao.DAOFactory;
+import org.jbei.ice.lib.dao.hibernate.SampleDAO;
+import org.jbei.ice.lib.dao.hibernate.StorageDAO;
+import org.jbei.ice.lib.dto.StorageLocation;
+import org.jbei.ice.lib.dto.sample.PartSample;
+import org.jbei.ice.lib.dto.sample.SampleType;
+import org.jbei.ice.lib.entry.EntryAuthorization;
+import org.jbei.ice.lib.entry.EntryEditor;
 import org.jbei.ice.lib.entry.model.Entry;
 import org.jbei.ice.lib.entry.sample.model.Sample;
-import org.jbei.ice.lib.logging.Logger;
 import org.jbei.ice.lib.models.Storage;
-import org.jbei.ice.lib.permissions.PermissionException;
-import org.jbei.ice.lib.shared.dto.PartSample;
-import org.jbei.ice.lib.shared.dto.StorageInfo;
+import org.jbei.ice.lib.utils.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * ABI to manipulate {@link Sample}s.
@@ -26,269 +28,279 @@ import org.jbei.ice.lib.shared.dto.StorageInfo;
 public class SampleController {
 
     private final SampleDAO dao;
-    private final StorageController storageController;
+    private final StorageDAO storageDAO;
+    private final EntryAuthorization entryAuthorization;
 
     public SampleController() {
-        dao = new SampleDAO();
-        storageController = ControllerFactory.getStorageController();
+        dao = DAOFactory.getSampleDAO();
+        storageDAO = DAOFactory.getStorageDAO();
+        entryAuthorization = new EntryAuthorization();
     }
 
-    /**
-     * Checks if the user has write permission of the {@link Sample}. This is based on the entry that is
-     * associated with the sample
-     *
-     * @param account Account of user
-     * @param sample  sample being checked
-     * @return True if user has write permission.
-     * @throws ControllerException
-     */
-    public boolean hasWritePermission(Account account, Sample sample) throws ControllerException {
-        if (sample == null || sample.getEntry() == null) {
-            throw new ControllerException("Failed to check write permissions for null sample!");
-        }
-
-        return ControllerFactory.getPermissionController().hasWritePermission(account, sample.getEntry());
+    protected Storage createStorage(String userId, String name, SampleType sampleType) {
+        Storage storage = new Storage();
+        storage.setName(sampleType.name());
+        storage.setIndex(name);
+        Storage.StorageType storageType = Storage.StorageType.valueOf(sampleType.name());
+        storage.setStorageType(storageType);
+        storage.setOwnerEmail(userId);
+        storage.setUuid(Utils.generateUUID());
+        return storage;
     }
 
-    /**
-     * Save the {@link Sample} into the database, then rebuilds the search index.
-     *
-     * @param sample
-     * @return Saved sample.
-     * @throws ControllerException
-     * @throws PermissionException
-     */
-    public Sample saveSample(Account account, Sample sample) throws ControllerException, PermissionException {
-        if (!hasWritePermission(account, sample)) {
-            throw new PermissionException("No permissions to save sample!");
+    public PartSample createSample(String userId, long entryId, PartSample partSample, String strainNamePrefix) {
+        Entry entry = DAOFactory.getEntryDAO().get(entryId);
+        if (entry == null) {
+            Logger.error("Could not retrieve entry with id " + entryId + ". Skipping sample creation");
+            return null;
         }
 
-        try {
-            return dao.save(sample);
-        } catch (DAOException e) {
-            throw new ControllerException(e);
-        }
-    }
+        entryAuthorization.expectWrite(userId, entry);
 
-    /**
-     * Delete the {@link Sample} in the database, then rebuild the search index. Also deletes the
-     * associated {@link Storage}, if it is a tube.
-     *
-     * @param sample
-     * @throws ControllerException
-     * @throws PermissionException
-     */
-    public void deleteSample(Account account, Sample sample) throws ControllerException, PermissionException {
-        if (!hasWritePermission(account, sample)) {
-            throw new PermissionException("No permissions to delete sample!");
-        }
+        Sample sample = SampleCreator.createSampleObject(partSample.getLabel(), userId, "");
+        sample.setEntry(entry);
 
-        try {
-            Storage storage = sample.getStorage();
-            dao.delete(sample);
-            if (storage.getStorageType() == Storage.StorageType.TUBE) {
-                storageController.delete(storage);
+        String depositor;
+        if (partSample.getDepositor() == null) {
+            depositor = userId;
+        } else {
+            depositor = partSample.getDepositor().getEmail();
+        }
+        StorageLocation mainLocation = partSample.getLocation();
+
+        // check and create the storage locations
+        if (mainLocation != null) {
+            Storage currentStorage;
+            switch (mainLocation.getType()) {
+                case ADDGENE:
+                    currentStorage = createStorage(depositor, mainLocation.getDisplay(), mainLocation.getType());
+                    currentStorage = storageDAO.create(currentStorage);
+                    break;
+
+                case PLATE96:
+                    currentStorage = createPlate96Location(depositor, mainLocation);
+                    break;
+
+                default:
+                    currentStorage = storageDAO.get(mainLocation.getId());
+                    if (currentStorage == null) {
+                        currentStorage = createStorage(userId, mainLocation.getDisplay(), mainLocation.getType());
+                        currentStorage = storageDAO.create(currentStorage);
+                    }
+
+                    while (mainLocation.getChild() != null) {
+                        StorageLocation child = mainLocation.getChild();
+                        Storage childStorage = storageDAO.get(child.getId());
+                        if (childStorage == null) {
+                            childStorage = createStorage(depositor, child.getDisplay(), child.getType());
+                            childStorage.setParent(currentStorage);
+                            childStorage = storageDAO.create(childStorage);
+                        }
+
+                        currentStorage = childStorage;
+                        mainLocation = child;
+                    }
             }
-        } catch (DAOException e) {
-            throw new ControllerException(e);
+            if (currentStorage == null)
+                return null;
+
+            sample.setStorage(currentStorage);
         }
+
+        // create sample. If main location is null then sample is created without location
+        sample = dao.create(sample);
+        String name = entry.getName();
+        if (strainNamePrefix != null && name != null && !name.startsWith(strainNamePrefix)) {
+            new EntryEditor().updateWithNextStrainName(strainNamePrefix, entry);
+        }
+        return sample.toDataTransferObject();
     }
 
     /**
-     * Retrieve the {@link Sample}s associated with the {@link Entry}.
-     *
-     * @param entry
-     * @return ArrayList of {@link Sample}s.
-     * @throws ControllerException
+     * Creates location records for a sample contained in a 96 well plate
+     * Provides support for 2-D barcoded systems. Validates the storage hierarchy before creating.
      */
-    public ArrayList<Sample> getSamples(Entry entry) throws ControllerException {
-        ArrayList<Sample> samples;
-        try {
-            samples = new ArrayList<>(dao.getSamplesByEntry(entry));
-        } catch (DAOException e) {
-            throw new ControllerException(e);
+    protected Storage createPlate96Location(String sampleDepositor, StorageLocation mainLocation) {
+        // validate: expected format is [PLATE96, WELL, (optional - TUBE)]
+        StorageLocation well = mainLocation.getChild();
+        StorageLocation tube = null;
+        if (well != null) {
+            tube = well.getChild();
+            if (tube != null) {
+                // just check the barcode
+                String barcode = tube.getDisplay();
+                Storage existing = storageDAO.retrieveStorageTube(barcode);
+                if (existing != null) {
+                    ArrayList<Sample> samples = dao.getSamplesByStorage(existing);
+                    if (samples != null && !samples.isEmpty()) {
+                        Logger.error("Barcode \"" + barcode + "\" already has a sample associated with it");
+                        return null;
+                    }
+                }
+            }
+        }
+
+        if (storageDAO.storageExists(mainLocation.getDisplay(), Storage.StorageType.PLATE96)) {
+            if (well == null)
+                return null;
+
+            if (storageDAO.storageExists(well.getDisplay(), Storage.StorageType.WELL)) {
+                // if well has no tube then duplicate
+                if (tube == null) {
+                    Logger.error("Plate " + mainLocation.getDisplay()
+                            + " already has a well storage at " + well.getDisplay());
+                    return null;
+                }
+
+                // check tube
+                // check if there is an existing sample with barcode
+                String barcode = tube.getDisplay();
+                Storage existing = storageDAO.retrieveStorageTube(barcode);
+                if (existing != null) {
+                    ArrayList<Sample> samples = dao.getSamplesByStorage(existing);
+                    if (samples != null && !samples.isEmpty()) {
+                        Logger.error("Barcode \"" + barcode + "\" already has a sample associated with it");
+                        return null;
+                    }
+                }
+            }
+        }
+
+        // create storage locations
+        Storage currentStorage = storageDAO.get(mainLocation.getId());
+        if (currentStorage == null) {
+            currentStorage = createStorage(sampleDepositor, mainLocation.getDisplay(), mainLocation.getType());
+            currentStorage = storageDAO.create(currentStorage);
+        }
+
+        while (mainLocation.getChild() != null) {
+            StorageLocation child = mainLocation.getChild();
+            Storage childStorage = storageDAO.get(child.getId());
+            if (childStorage == null) {
+                childStorage = createStorage(sampleDepositor, child.getDisplay(), child.getType());
+                childStorage.setParent(currentStorage);
+                childStorage = storageDAO.create(childStorage);
+            }
+
+            currentStorage = childStorage;
+            mainLocation = child;
+        }
+
+        return currentStorage;
+    }
+
+    public ArrayList<PartSample> retrieveEntrySamples(String userId, long entryId) {
+        Entry entry = DAOFactory.getEntryDAO().get(entryId);
+        if (entry == null)
+            return null;
+
+        entryAuthorization.expectRead(userId, entry);
+
+        // samples
+        ArrayList<Sample> entrySamples = dao.getSamplesByEntry(entry);
+        ArrayList<PartSample> samples = new ArrayList<>();
+        if (entrySamples == null)
+            return samples;
+
+        boolean inCart = false;
+        if (userId != null) {
+            Account userAccount = DAOFactory.getAccountDAO().getByEmail(userId);
+            inCart = DAOFactory.getRequestDAO().getSampleRequestInCart(userAccount, entry) != null;
+        }
+
+        for (Sample sample : entrySamples) {
+            // convert sample to info
+            Storage storage = sample.getStorage();
+            if (storage == null) {
+                // dealing with sample with no storage
+                PartSample generic = sample.toDataTransferObject();
+                StorageLocation location = new StorageLocation();
+                location.setType(SampleType.GENERIC);
+                location.setDisplay(sample.getLabel());
+                generic.setLocation(location);
+                generic = setAccountInfo(generic, sample.getDepositor());
+                samples.add(generic);
+                continue;
+            }
+
+            StorageLocation storageLocation = storage.toDataTransferObject();
+
+            while (storage.getParent() != null) {
+                storage = storage.getParent();
+                StorageLocation parentLocation = storage.toDataTransferObject();
+                parentLocation.setChild(storageLocation);
+                storageLocation = parentLocation;
+
+                boolean isParent = (storageLocation.getType() != null && storageLocation.getType().isTopLevel());
+                if (isParent)
+                    break;
+            }
+
+            // get specific sample type and details about it
+            PartSample partSample = new PartSample();
+            partSample.setId(sample.getId());
+            partSample.setCreationTime(sample.getCreationTime().getTime());
+            partSample.setLabel(sample.getLabel());
+            partSample.setLocation(storageLocation);
+            partSample.setInCart(inCart);
+            partSample = setAccountInfo(partSample, sample.getDepositor());
+            samples.add(partSample);
         }
 
         return samples;
     }
 
-    /**
-     * Retrieve the {@link Sample}s associated with the given {@link Storage}.
-     *
-     * @param storage
-     * @return ArrayList of {@link Sample}s.
-     * @throws ControllerException
-     */
-    public ArrayList<Sample> getSamplesByStorage(Storage storage) throws ControllerException {
+    protected PartSample setAccountInfo(PartSample partSample, String email) {
+        Account account = DAOFactory.getAccountDAO().getByEmail(email);
+        if (account != null)
+            partSample.setDepositor(account.toDataTransferObject());
+        else {
+            AccountTransfer accountTransfer = new AccountTransfer();
+            accountTransfer.setEmail(email);
+            partSample.setDepositor(accountTransfer);
+        }
+        return partSample;
+    }
+
+    public boolean delete(String userId, long partId, long sampleId) {
+        Sample sample = dao.get(sampleId);
+        if (sample == null)
+            return true;
+
+        Entry entry = sample.getEntry();
+        if (entry == null || partId != entry.getId())
+            return false;
+
+        entryAuthorization.expectWrite(userId, entry);
+
         try {
-            return dao.getSamplesByStorage(storage);
-        } catch (DAOException e) {
-            throw new ControllerException(e);
+            dao.delete(sample);
+            return true;
+        } catch (DAOException de) {
+            return false;
         }
     }
 
-    public Sample getSampleById(long id) throws ControllerException {
-        try {
-            return dao.get(id);
-        } catch (DAOException e) {
-            throw new ControllerException(e);
+    public List<StorageLocation> getStorageLocations(String userId, String entryType) {
+        List<Storage> storages = DAOFactory.getStorageDAO().getAllStorageSchemes();
+        ArrayList<StorageLocation> locations = new ArrayList<>();
+        for (Storage storage : storages) {
+            locations.add(storage.toDataTransferObject());
         }
+
+        return locations;
     }
 
-    public boolean hasSample(Entry entry) throws ControllerException {
-        try {
-            return dao.hasSample(entry);
-        } catch (DAOException e) {
-            throw new ControllerException(e);
-        }
-    }
-
-    // mainly used by the api to create a strain sample record
-    public Sample createStrainSample(Account account, String recordId, String rack, String location, String barcode,
-            String label, String strainNamePrefix) throws ControllerException {
-        //check for administrative privileges
-        if (!ControllerFactory.getAccountController().isAdministrator(account)) {
-            throw new ControllerException("Must be an administrator to perform this action");
-        }
-
-        // check if there is an existing sample with barcode
-        SampleController sampleController = ControllerFactory.getSampleController();
-        Storage existing = storageController.retrieveStorageTube(barcode.trim());
-        if (existing != null) {
-            ArrayList<Sample> samples = sampleController.getSamplesByStorage(existing);
-            if (samples != null && !samples.isEmpty()) {
-                Logger.error("Barcode \"" + barcode + "\" already has a sample associated with it");
-                return null;
-            }
-        }
-
-        // retrieve entry for record id
-        Entry entry;
-        EntryController entryController = ControllerFactory.getEntryController();
-        try {
-            entry = entryController.getByRecordId(account, recordId);
-            if (entry == null)
-                throw new ControllerException("Could not locate entry to associate sample with");
-        } catch (PermissionException e) {
-            throw new ControllerException(e);
-        }
-
-        Logger.info("Creating new strain sample [" + rack + ", " + location + ", " + barcode + ", " + label
-                            + "] for entry \"" + entry.getId());
-        // TODO : this is a hack till we migrate to a single strain default
-        Storage strainScheme = null;
-        List<Storage> schemes = storageController.retrieveAllStorageSchemes();
-        for (Storage storage : schemes) {
-            if (storage.getStorageType() == Storage.StorageType.SCHEME
-                    && "Strain Storage Matrix Tubes".equals(storage.getName())) {
-                strainScheme = storage;
-                break;
-            }
-        }
-
-        if (strainScheme == null) {
-            String errMsg = "Could not locate default strain scheme (Strain Storage Matrix Tubes[Plate, Well, Tube])";
-            Logger.error(errMsg);
-            throw new ControllerException(errMsg);
-        }
-
-        Storage newLocation = storageController.getLocation(strainScheme, new String[]{rack, location, barcode});
-
-        Sample sample = SampleCreator.createSampleObject(label, account.getEmail(), "");
-        sample.setEntry(entry);
-        sample.setStorage(newLocation);
-        try {
-            sample = saveSample(account, sample);
-            String name = entry.getName();
-            if (strainNamePrefix != null && name != null && !name.startsWith(strainNamePrefix)) {
-                entryController.updateWithNextStrainName(strainNamePrefix, entry);
-            }
-        } catch (PermissionException e) {
-            throw new ControllerException(e);
-        }
-        return sample;
-    }
-
-    public SampleStorage createSample(Account account, long entryId, SampleStorage sampleStorage) {
-        EntryController controller = ControllerFactory.getEntryController();
-        StorageController storageController = ControllerFactory.getStorageController();
-
-        Entry entry;
-        try {
-            entry = controller.get(account, entryId);
-            if (entry == null) {
-                Logger.error("Could not retrieve entry with id " + entryId + ". Skipping sample creation");
-                return null;
-            }
-
-            if (!ControllerFactory.getPermissionController().hasWritePermission(account, entry)) {
-                Logger.error(account.getEmail() + ": no write permissions to create sample for " + entryId);
-                return null;
-            }
-        } catch (ControllerException e) {
-            Logger.error(e);
+    public ArrayList<PartSample> getSamplesByBarcode(String userId, String barcode) {
+        Storage storage = storageDAO.retrieveStorageTube(barcode);
+        if (storage == null)
             return null;
+
+        List<Sample> samples = dao.getSamplesByStorage(storage);
+        ArrayList<PartSample> partSamples = new ArrayList<>();
+        for (Sample sample : samples) {
+            partSamples.add(sample.toDataTransferObject());
         }
-
-        PartSample partSample = sampleStorage.getPartSample();
-        LinkedList<StorageInfo> locations = sampleStorage.getStorageList();
-
-        Sample sample = SampleCreator.createSampleObject(partSample.getLabel(), account.getEmail(),
-                                                         partSample.getNotes());
-        sample.setEntry(entry);
-
-        if (locations == null || locations.isEmpty()) {
-            Logger.info("Creating sample without location");
-
-            // create sample, but not location
-            try {
-                sample = dao.save(sample);
-                sampleStorage.getPartSample().setSampleId(sample.getId() + "");
-                sampleStorage.getPartSample().setDepositor(account.getEmail());
-                return sampleStorage;
-            } catch (DAOException e) {
-                Logger.error(e);
-            }
-            return null;
-        }
-
-        // create sample and location
-        String[] labels = new String[locations.size()];
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < labels.length; i++) {
-            labels[i] = locations.get(i).getDisplay();
-            sb.append(labels[i]);
-            if (i - 1 < labels.length)
-                sb.append("/");
-        }
-
-        Logger.info("Creating sample with locations " + sb.toString());
-        try {
-            Storage scheme = storageController.get(Long.parseLong(partSample.getLocationId()), false);
-            Storage storage = storageController.getLocation(scheme, labels);
-            storage = storageController.update(storage);
-            sample.setStorage(storage);
-            sample = dao.save(sample);
-            sampleStorage.getStorageList().clear();
-
-            List<Storage> storages = StorageDAO.getStoragesUptoScheme(storage);
-            if (storages != null) {
-                for (Storage storage1 : storages) {
-                    StorageInfo info = new StorageInfo();
-                    info.setDisplay(storage1.getIndex());
-                    info.setId(storage1.getId());
-                    info.setType(storage1.getStorageType().name());
-                    sampleStorage.getStorageList().add(info);
-                }
-            }
-
-            sampleStorage.getPartSample().setSampleId(sample.getId() + "");
-            sampleStorage.getPartSample().setDepositor(account.getEmail());
-            return sampleStorage;
-        } catch (NumberFormatException | DAOException | ControllerException e) {
-            Logger.error(e);
-        }
-
-        return null;
+        return partSamples;
     }
 }

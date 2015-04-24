@@ -1,11 +1,12 @@
 package org.jbei.ice.lib;
 
 import org.jbei.ice.lib.account.AccountController;
+import org.jbei.ice.lib.account.AccountTransfer;
+import org.jbei.ice.lib.account.AccountType;
 import org.jbei.ice.lib.account.model.Account;
-import org.jbei.ice.lib.shared.dto.user.AccountType;
-import org.jbei.ice.lib.shared.dto.user.User;
-
-import junit.framework.Assert;
+import org.jbei.ice.lib.dao.DAOFactory;
+import org.jbei.ice.lib.dao.hibernate.AccountDAO;
+import org.junit.Assert;
 
 /**
  * Helper class for creating accounts to be used in tests
@@ -17,24 +18,24 @@ public class AccountCreator {
 
     public static Account createTestAccount(String testName, boolean admin) throws Exception {
         String email = testName + "@TESTER";
-        AccountController accountController = new AccountController();
-        Account account = accountController.getByEmail(email);
+        AccountDAO dao = DAOFactory.getAccountDAO();
+        Account account = dao.getByEmail(email);
         if (account != null)
             throw new Exception("duplicate account");
 
-        User user = new User();
-        user.setFirstName("TEST_FNAME");
-        user.setLastName("TEST");
-        user.setEmail(email);
-        String pass = accountController.createNewAccount(user, false);
+        AccountTransfer accountTransfer = new AccountTransfer();
+        accountTransfer.setFirstName("TEST_FNAME");
+        accountTransfer.setLastName("TEST");
+        accountTransfer.setEmail(email);
+        accountTransfer = new AccountController().createNewAccount(accountTransfer, false);
 
-        Assert.assertNotNull(pass);
-        account = accountController.getByEmail(email);
+        Assert.assertNotNull(accountTransfer.getPassword());
+        account = dao.getByEmail(email);
         Assert.assertNotNull(account);
 
         if (admin) {
             account.setType(AccountType.ADMIN);
-            accountController.save(account);
+            dao.update(account);
         }
         return account;
     }

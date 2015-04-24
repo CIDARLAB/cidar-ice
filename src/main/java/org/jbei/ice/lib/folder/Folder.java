@@ -5,9 +5,10 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.persistence.*;
 
-import org.jbei.ice.lib.dao.IModel;
+import org.jbei.ice.lib.dao.IDataModel;
+import org.jbei.ice.lib.dto.folder.FolderDetails;
+import org.jbei.ice.lib.dto.folder.FolderType;
 import org.jbei.ice.lib.entry.model.Entry;
-import org.jbei.ice.lib.shared.dto.folder.FolderType;
 
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
@@ -21,7 +22,7 @@ import org.hibernate.annotations.LazyCollectionOption;
 @Entity
 @Table(name = "folder")
 @SequenceGenerator(name = "sequence", sequenceName = "folder_id_seq", allocationSize = 1)
-public class Folder implements IModel {
+public class Folder implements IDataModel {
 
     private static final long serialVersionUID = 1L;
 
@@ -55,7 +56,7 @@ public class Folder implements IModel {
     private FolderType type;
 
     @Column(name = "propagate_permissions")
-    private Boolean propagatePermissions;
+    private Boolean propagatePermissions = Boolean.FALSE;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "folder_entry", joinColumns = {@JoinColumn(name = "folder_id", nullable = false)},
@@ -131,10 +132,34 @@ public class Folder implements IModel {
     }
 
     public boolean isPropagatePermissions() {
-        return propagatePermissions != null && propagatePermissions;
+        if (propagatePermissions == null)
+            return false;
+        return propagatePermissions;
     }
 
-    public void setPropagatePermissions(Boolean propagatePermissions) {
+    public void setPropagatePermissions(boolean propagatePermissions) {
         this.propagatePermissions = propagatePermissions;
+    }
+
+    public Folder getParent() {
+        return parent;
+    }
+
+    public void setParent(Folder parent) {
+        this.parent = parent;
+    }
+
+    @Override
+    public FolderDetails toDataTransferObject() {
+        FolderDetails details = new FolderDetails(id, name);
+        details.setType(type);
+        details.setDescription(description);
+        if (parent != null) {
+            details.setParent(parent.toDataTransferObject());
+        }
+        if (getCreationTime() != null)
+            details.setCreated(getCreationTime().getTime());
+        details.setPropagatePermission(this.isPropagatePermissions());
+        return details;
     }
 }
