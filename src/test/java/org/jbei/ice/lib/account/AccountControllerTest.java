@@ -6,7 +6,10 @@ package org.jbei.ice.lib.account;
 import org.jbei.ice.lib.AccountCreator;
 import org.jbei.ice.lib.account.model.Account;
 import org.jbei.ice.lib.dao.hibernate.HibernateUtil;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -110,10 +113,14 @@ public class AccountControllerTest {
     @Test
     public void testIsAdministrator() throws Exception {
         Account account = AccountCreator.createTestAccount("testIsAdministratorNonAdmin", false);
-        Assert.assertFalse(controller.isAdministrator(account));
+        Assert.assertFalse(controller.isAdministrator(account.getEmail()));
 
         account = AccountCreator.createTestAccount("testIsAdministratorAdmin", true);
+<<<<<<< HEAD
         Assert.assertTrue(controller.isAdministrator(account));
+=======
+        Assert.assertTrue(controller.isAdministrator(account.getEmail()));
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     }
 
     @Test
@@ -125,10 +132,9 @@ public class AccountControllerTest {
         AccountTransfer info = controller.authenticate(new AccountTransfer(account.getEmail(), "p455W0rd"));
         Assert.assertNotNull(info);
         Assert.assertFalse(info.getSessionId().isEmpty());
-        Account sessIdAccount = controller.getAccountBySessionKey(info.getSessionId());
+        AccountTransfer sessIdAccount = controller.getAccountBySessionKey(info.getSessionId());
         Assert.assertNotNull(sessIdAccount);
         Assert.assertEquals(account.getEmail(), sessIdAccount.getEmail());
-        Assert.assertEquals(account.getSalt(), sessIdAccount.getSalt());
     }
 
     @Test

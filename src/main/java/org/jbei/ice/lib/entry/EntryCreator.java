@@ -4,7 +4,10 @@ import org.apache.commons.lang.StringUtils;
 import org.jbei.ice.ApplicationController;
 import org.jbei.ice.lib.access.Permission;
 import org.jbei.ice.lib.account.model.Account;
+<<<<<<< HEAD
 import org.jbei.ice.lib.common.logging.Logger;
+=======
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.jbei.ice.lib.dao.DAOFactory;
 import org.jbei.ice.lib.dao.hibernate.EntryDAO;
 import org.jbei.ice.lib.dao.hibernate.PermissionDAO;
@@ -188,6 +191,7 @@ public class EntryCreator {
         entry = createEntry(account, entry, part.getAccessPermissions());
         return entry.getId();
     }
+<<<<<<< HEAD
 
     public PartData receiveTransferredEntry(PartData part) {
         // check the record id
@@ -226,4 +230,6 @@ public class EntryCreator {
 
         return entry;
     }
+=======
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 }

@@ -1,6 +1,7 @@
 package org.jbei.ice.services.rest;
 
 import java.util.HashMap;
+<<<<<<< HEAD
 import java.util.Map;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -100,4 +101,20 @@ public class RestClient {
         multiPart.field("entryType", entryType.name());
         return invocationBuilder.post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
     }
+=======
+
+/**
+ * Parent Rest Client class
+ *
+ * @author Hector Plahar
+ */
+public abstract class RestClient {
+
+    protected final String AUTHENTICATION_PARAM_NAME = "X-ICE-Authentication-SessionId";
+    protected final String WOR_PARTNER_TOKEN_HEADER = "X-ICE-WOR-Token";
+
+    public abstract Object get(String url, String path, Class<?> clazz, HashMap<String, Object> queryParams);
+
+    public abstract Object post(String url, String resourcePath, Object object, Class<?> responseClass);
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 }

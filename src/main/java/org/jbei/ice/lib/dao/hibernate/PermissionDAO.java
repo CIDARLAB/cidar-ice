@@ -8,6 +8,10 @@ import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/PermissionDAO.java
+=======
+import org.hibernate.sql.JoinType;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/PermissionDAO.java
 import org.jbei.ice.lib.access.Permission;
 import org.jbei.ice.lib.account.model.Account;
 import org.jbei.ice.lib.bulkupload.BulkUpload;
@@ -279,6 +283,8 @@ public class PermissionDAO extends HibernateRepository<Permission> {
         Criterion criterion = Restrictions.disjunction()
                 .add(Restrictions.eq("canWrite", true))
                 .add(Restrictions.eq("canRead", true));
+<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/PermissionDAO.java
+=======
         Session session = currentSession();
         try {
             List list = session.createCriteria(Permission.class)
@@ -301,6 +307,37 @@ public class PermissionDAO extends HibernateRepository<Permission> {
         Criterion criterion = Restrictions.disjunction()
                 .add(Restrictions.eq("canWrite", true))
                 .add(Restrictions.eq("canRead", true));
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/PermissionDAO.java
+        Session session = currentSession();
+        try {
+            List list = session.createCriteria(Permission.class)
+                    .add(Restrictions.isNull("entry"))
+<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/PermissionDAO.java
+                    .add(Restrictions.disjunction()
+                            .add(Restrictions.in("group", accountGroups))
+                            .add(Restrictions.eq("account", account)))
+                    .add(criterion)
+                    .setProjection(Projections.property("folder"))
+                    .add(Restrictions.isNotNull("folder"))
+=======
+                    .add(Restrictions.eq("group", group))
+                    .add(criterion)
+                    .add(Restrictions.isNotNull("folder"))
+                    .setProjection(Projections.property("folder"))
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/PermissionDAO.java
+                    .list();
+            return new HashSet<>(list);
+        } catch (HibernateException he) {
+            Logger.error(he);
+            throw new DAOException(he);
+        }
+    }
+
+<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/PermissionDAO.java
+    public Set<Folder> getFolders(Group group) {
+        Criterion criterion = Restrictions.disjunction()
+                .add(Restrictions.eq("canWrite", true))
+                .add(Restrictions.eq("canRead", true));
         Session session = currentSession();
         try {
             List list = session.createCriteria(Permission.class)
@@ -317,6 +354,8 @@ public class PermissionDAO extends HibernateRepository<Permission> {
         }
     }
 
+=======
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/PermissionDAO.java
     /**
      * Filters the given list, removing those that the specified account does not have read privileges on
      *
@@ -327,6 +366,7 @@ public class PermissionDAO extends HibernateRepository<Permission> {
      */
     public List<Long> getCanReadEntries(Account account, Set<Group> groups, List<Long> entries) {
         Criteria criteria = currentSession().createCriteria(Permission.class);
+<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/PermissionDAO.java
 
         if (!groups.isEmpty()) {
             Disjunction disjunction = Restrictions.disjunction();
@@ -341,11 +381,59 @@ public class PermissionDAO extends HibernateRepository<Permission> {
                 .add(Restrictions.in("entry.id", entries))
                 .add(Restrictions.eq("entry.visibility", Visibility.OK.getValue()));
 
+=======
+        Disjunction disjunction = Restrictions.disjunction();
+        disjunction.add(Restrictions.eq("account", account));
+        disjunction.add(Restrictions.eq("entry.ownerEmail", account.getEmail()));
+
+        if (!groups.isEmpty()) {
+            disjunction.add(Restrictions.in("group", groups));
+        }
+
+        criteria.createAlias("entry", "entry", JoinType.LEFT_OUTER_JOIN)
+                .add(Restrictions.in("entry.id", entries))
+                .add(Restrictions.eq("entry.visibility", Visibility.OK.getValue()));
+
+        criteria.add(disjunction);
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/PermissionDAO.java
         return criteria.setProjection(
                 Projections.distinct(Projections.property("entry.id")))
                 .list();
     }
 
+<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/PermissionDAO.java
+=======
+    /**
+     * Determines if the specified account has write privileges on the entries passed on the parameter
+     *
+     * @param account user account
+     * @param groups  groups that the account belongs to
+     * @param entries list of entry Ids to check
+     * @return true if the user has write privileges on <b>all</b> the entries specified in the parameter
+     */
+    public boolean canWrite(Account account, Set<Group> groups, List<Long> entries) {
+        Criteria criteria = currentSession().createCriteria(Permission.class);
+        Disjunction disjunction = Restrictions.disjunction();
+        disjunction.add(Restrictions.and(Restrictions.eq("account", account), Restrictions.eq("canWrite", true)));
+        disjunction.add(Restrictions.eq("entry.ownerEmail", account.getEmail()));
+
+        if (!groups.isEmpty()) {
+            disjunction.add(Restrictions.and(Restrictions.in("group", groups), Restrictions.eq("canWrite", true)));
+        }
+
+        criteria.createAlias("entry", "entry", JoinType.LEFT_OUTER_JOIN)
+                .add(Restrictions.in("entry.id", entries))
+                .add(Restrictions.eq("entry.visibility", Visibility.OK.getValue()));
+
+        criteria.add(disjunction);
+        criteria.setProjection(Projections.distinct(Projections.property("entry.id")));
+
+        Number number = (Number) criteria.setProjection(Projections.rowCount()).uniqueResult();
+        return number.intValue() == entries.size();
+    }
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/PermissionDAO.java
     @Override
     public Permission get(long id) {
         return super.get(Permission.class, id);

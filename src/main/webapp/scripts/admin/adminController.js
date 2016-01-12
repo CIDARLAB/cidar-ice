@@ -138,18 +138,39 @@ angular.module('ice.admin.controller', [])
             });
         };
     })
+<<<<<<< HEAD
     .controller('AdminTransferredEntriesController', function ($rootScope, $cookieStore, $filter, $location, $scope, Folders, Entry) {
         $scope.maxSize = 5;
         $scope.currentPage = 1;
+=======
+    .controller('AdminTransferredEntriesController', function ($rootScope, $cookieStore, $filter, $location, $scope, Folders, Entry, Util) {
+        $scope.maxSize = 5;
+        $scope.currentPage = 1;
+        $scope.selectedTransferredEntries = [];
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         var params = {folderId: 'transferred'};
 
         // get all entries that are transferred
         $scope.transferredEntries = undefined;
+<<<<<<< HEAD
         Folders().folder(params, function (result) {
             $scope.transferredEntries = result;
         }, function (error) {
             console.error(error);
         });
+=======
+
+        var getTransferredEntries = function () {
+            Folders().folder(params, function (result) {
+                $scope.transferredEntries = result;
+                $scope.selectedTransferredEntries = [];
+            }, function (error) {
+                console.error(error);
+            });
+        };
+        getTransferredEntries();
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
         $scope.setPage = function (pageNo) {
             if (pageNo == undefined || isNaN(pageNo))
@@ -168,9 +189,36 @@ angular.module('ice.admin.controller', [])
         };
 
         $scope.acceptEntries = function () {
+<<<<<<< HEAD
         };
 
         $scope.rejectEntries = function () {
+=======
+            var successHandler = function (result) {
+                getTransferredEntries();
+            };
+
+            Util.update("/rest/parts", $scope.selectedTransferredEntries, {visibility: "OK"}, successHandler);
+        };
+
+        $scope.rejectEntries = function () {
+            var successHandler = function (result) {
+                getTransferredEntries();
+            };
+
+            Util.update("/rest/parts", $scope.selectedTransferredEntries, {visibility: "DELETED"}, successHandler);
+        };
+
+        $scope.selectTransferredEntry = function (entry) {
+            var index = $scope.selectedTransferredEntries.indexOf(entry.id);
+            if (index != -1) {
+                $scope.selectedTransferredEntries.splice(index, 1);
+                return;
+            }
+
+            // add to selected
+            $scope.selectedTransferredEntries.push(entry.id);
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         };
 
         $scope.showEntryDetails = function (entry, index) {

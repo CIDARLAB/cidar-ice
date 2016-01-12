@@ -9,6 +9,12 @@ import org.jbei.ice.lib.dao.IDataTransferModel;
  */
 public enum RemotePartnerStatus implements IDataTransferModel {
 
+<<<<<<< HEAD
+=======
+    // information about the remote instance has been saved but contact did not succeed
+    NOT_CONTACTED,
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     // remote partner has been blocked from sending and receiving results from this registry
     BLOCKED,
 

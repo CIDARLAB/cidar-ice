@@ -414,8 +414,11 @@ angular.module('ice.entry.controller', [])
         });
 
         $scope.deleteHistory = function (history) {
+<<<<<<< HEAD
             console.log(history);
 
+=======
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             entry.deleteHistory({partId: entryId, historyId: history.id}, function (result) {
                 var idx = $scope.history.indexOf(history);
                 if (idx == -1)
@@ -1104,10 +1107,19 @@ angular.module('ice.entry.controller', [])
         };
     })
 
+<<<<<<< HEAD
     .controller('EntryController', function ($scope, $stateParams, $cookieStore, $location, $modal, $rootScope, FileUploader, Entry, Folders, EntryService, EntryContextUtil, Selection) {
         $scope.partIdEditMode = false;
         $scope.showSBOL = true;
         $scope.context = EntryContextUtil.getContext();
+=======
+    .controller('EntryController', function ($scope, $stateParams, $cookieStore, $location, $modal, $rootScope,
+                                             FileUploader, Entry, Folders, EntryService, EntryContextUtil, Selection) {
+        $scope.partIdEditMode = false;
+        $scope.showSBOL = true;
+        $scope.context = EntryContextUtil.getContext();
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         $scope.isFileUpload = false;
 
         var sessionId = $cookieStore.get("sessionId");
@@ -1212,6 +1224,10 @@ angular.module('ice.entry.controller', [])
                     $scope.processLinkAdd = function () {
                         entry.update($scope.mainEntry, function (result) {
                             entry.query({partId: result.id}, function (result) {
+<<<<<<< HEAD
+=======
+                                $scope.mainEntry.linkedParts = result.linkedParts;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                                 $modalInstance.close(result);
                             }, function (error) {
                                 console.error(error);

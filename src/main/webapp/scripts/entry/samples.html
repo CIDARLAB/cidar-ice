@@ -36,6 +36,10 @@
                 <ul class="dropdown-menu">
                     <li ng-click="newSample.location.type ='PLATE96'"><a>96 Well Plate</a></li>
                     <li ng-click="newSample.location.type ='ADDGENE'"><a>AddGene</a></li>
+<<<<<<< HEAD
+=======
+                    <li ng-click="newSample.location.type ='SHELF'"><a>Shelf</a></li>
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 </ul>
             </div>
 
@@ -99,6 +103,50 @@
                 </tr>
             </table>
 
+<<<<<<< HEAD
+=======
+            <table class="entry_sample_panel" ng-if="newSample.location.type==='SHELF'">
+                <tr>
+                    <td colspan="4">
+                        <strong style="color: #a52a2a;">SHELF <input class="input_box" placeholder="Enter shelf label"
+                                                                     ng-model="newSample.location.display">
+                        </strong>
+                    </td>
+                </tr>
+                <tr>
+                    <!--<td>&nbsp;</td>-->
+                    <td class="pad-8">
+                        <h4 class="text-center" ng-init="newSample.location.child.type='BOX_INDEXED'">Box
+                            <input class="input_box" ng-model="newSample.location.child.display">
+                        </h4>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pad-8">
+                        <h4 class="text-center" ng-init="newSample.location.child.child.type='WELL'">Well
+                            <input class="input_box" ng-model="newSample.location.child.child.display">
+                        </h4>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pad-8">
+                        <h4 class="text-center" ng-init="newSample.location.child.child.child.type='TUBE'">Tube
+                            <input class="input_box" ng-model="newSample.location.child.child.child.display">
+                        </h4>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="5" class="small">
+                        <div style="height: 1px; margin: 9px 0; overflow: hidden; background-color: #e5e5e5;"></div>
+                        <input class="input_box" ng-model="newSample.label" placeHolder="Enter description">
+                        <br>
+                        <span style="color: #777"><span my-current-time="format"></span></span> - <a
+                            ng-href="/profile/{{user.id}}">{{user.firstName}} {{user.lastName}}</a>
+                    </td>
+                </tr>
+            </table>
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             <div class="pad_top" ng-if="newSample.location.type">
                 <button type="submit" class="btn btn-primary btn-sm" ng-click="createNewSample()">Submit</button>
                 <button type="button" class="btn btn-default btn-sm" ng-click="newSample.add=false">Cancel</button>

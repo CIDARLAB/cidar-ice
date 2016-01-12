@@ -282,9 +282,23 @@ angular.module('ice.wor.controller', [])
         $scope.newPartner = undefined;
         $scope.addPartner = function () {
             wor.addPartner({}, $scope.newPartner, function (result) {
+<<<<<<< HEAD
                 $scope.wor = result;
                 $scope.showAddRegistryForm = false;
                 $scope.newPartner = undefined;
+=======
+                if (!result) {
+                    console.error("Error adding");
+                    return;
+                }
+
+                $scope.showAddRegistryForm = false;
+                $scope.newPartner = undefined;
+
+                wor.query({approved_only: false}, function (result) {
+                    $scope.wor = result;
+                });
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             });
         };
 

@@ -1,7 +1,12 @@
 'use strict';
 
 angular.module('ice.search.controller', [])
+<<<<<<< HEAD
     .controller('SearchController', function ($scope, $http, $cookieStore, $location, Entry, Search, EntryContextUtil, Selection, WebOfRegistries) {
+=======
+    .controller('SearchController', function ($scope, $http, $cookieStore, $location, Entry, Search, EntryContextUtil,
+                                              Selection, WebOfRegistries) {
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         $scope.$on("RunSearch", function (event, filters) {
             $scope.searchResults = undefined;
             $scope.searchFilters = filters;
@@ -12,7 +17,11 @@ angular.module('ice.search.controller', [])
         var runAdvancedSearch = function (filters) {
             $scope.loadingSearchResults = true;
 
+<<<<<<< HEAD
             Search().runAdvancedSearch({webSearch:filters.webSearch}, filters,
+=======
+            Search().runAdvancedSearch({webSearch: filters.webSearch}, filters,
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 function (result) {
                     $scope.searchResults = result;
                     $scope.loadingSearchResults = false;
@@ -25,16 +34,32 @@ angular.module('ice.search.controller', [])
             );
         };
 
+<<<<<<< HEAD
         var noFilters = (!$scope.searchFilters || Object.keys($scope.searchFilters).length === 0);
 
         if (noFilters) {
             $scope.searchFilters = {entryTypes:[], parameters:{}, blastQuery:{}, queryString:""};
             var queryString = $location.search().q;
+=======
+        $scope.setSearchResultPage = function (pageNo) {
+            $scope.searchFilters.parameters.start = (pageNo - 1) * 15;
+            $scope.currentPage = pageNo;
+            runAdvancedSearch($scope.searchFilters);
+        };
+
+        var noFilters = (!$scope.searchFilters || Object.keys($scope.searchFilters).length === 0);
+
+        if (noFilters) {
+            $scope.searchFilters = {entryTypes: [], parameters: {}, blastQuery: {}, queryString: ""};
+            var queryString = $location.search().q;
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             if (queryString !== undefined) {
                 $scope.searchFilters.queryString = queryString;
             }
         }
 
+<<<<<<< HEAD
         // filters run advanced search
         $scope.searchFilters.parameters.start = 0;
         $scope.searchFilters.parameters.retrieveCount = 15;
@@ -49,6 +74,20 @@ angular.module('ice.search.controller', [])
             $scope.currentPage = pageNo;
             runAdvancedSearch($scope.searchFilters);
         };
+=======
+        var context = EntryContextUtil.getContext();
+        if (context) {
+            var pageNum = (Math.floor(context.offset / 15)) + 1;
+            $scope.setSearchResultPage(pageNum);
+        } else {
+            $scope.searchFilters.parameters.start = 0;
+            $scope.searchFilters.parameters.retrieveCount = 15;
+            $scope.searchFilters.parameters.sortField = "RELEVANCE";
+            $scope.setSearchResultPage(1);
+        }
+
+        $scope.maxSize = 5;  // number of clickable pages to show in pagination
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
         $scope.getType = function (relScore) {
             if (relScore === undefined)
@@ -67,7 +106,11 @@ angular.module('ice.search.controller', [])
             $scope.searchResultToolTip = undefined;
             var sessionId = $cookieStore.get("sessionId");
 
+<<<<<<< HEAD
             Entry(sessionId).tooltip({partId:entry.id},
+=======
+            Entry(sessionId).tooltip({partId: entry.id},
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 function (result) {
                     $scope.searchResultToolTip = result;
                 }, function (error) {
@@ -77,7 +120,11 @@ angular.module('ice.search.controller', [])
 
         $scope.remoteTooltipDetails = function (result) {
             $scope.searchResultToolTip = undefined;
+<<<<<<< HEAD
             WebOfRegistries().getToolTip({partnerId:result.partner.id, entryId:result.entryInfo.id},
+=======
+            WebOfRegistries().getToolTip({partnerId: result.partner.id, entryId: result.entryInfo.id},
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 function (result) {
                     $scope.searchResultToolTip = result;
                 }, function (error) {
@@ -86,14 +133,23 @@ angular.module('ice.search.controller', [])
         };
 
         $scope.goToEntryDetails = function (entry, index) {
+<<<<<<< HEAD
             // this assumes that if the user is able to click on a result then search was successful
 
             var offset = (($scope.currentPage - 1) * 15) + index;
 
+=======
+            if (!$scope.searchFilters.parameters) {
+                $scope.searchFilters.parameters = {start: index}
+            }
+
+            var offset = (($scope.currentPage - 1) * 15) + index;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             EntryContextUtil.setContextCallback(function (offset, callback) {
                 $scope.searchFilters.parameters.start = offset;
                 $scope.searchFilters.parameters.retrieveCount = 1;
 
+<<<<<<< HEAD
                 Search().runAdvancedSearch({webSearch:$scope.searchFilters.webSearch}, $scope.searchFilters,
                     function (result) {
                         callback(result.results[0].entryInfo.id);
@@ -103,6 +159,14 @@ angular.module('ice.search.controller', [])
                     }
                 );
             }, $scope.searchResults.resultCount, offset, "/search");
+=======
+                Search().runAdvancedSearch({webSearch: $scope.searchFilters.webSearch}, $scope.searchFilters,
+                    function (result) {
+                        callback(result.results[0].entryInfo.id);
+                    }
+                );
+            }, $scope.searchResults.resultCount, offset, "/search", $scope.searchResults.sortField);
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
             $location.path("/entry/" + entry.id);
         };
@@ -118,8 +182,13 @@ angular.module('ice.search.controller', [])
             return Selection.searchEntrySelected(entry);
         }
     })
+<<<<<<< HEAD
     .controller('SearchInputController', function ($scope, $rootScope, $http, $cookieStore, $location) {
         $scope.searchTypes = {all:true, strain:true, plasmid:true, part:true, arabidopsis:true};
+=======
+    .controller('SearchInputController', function ($scope, $rootScope, $http, $cookieStore, $location, Search) {
+        $scope.searchTypes = {all: true, strain: true, plasmid: true, part: true, arabidopsis: true};
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
         $scope.check = function (selection) {
             var allTrue = true;
@@ -134,7 +203,15 @@ angular.module('ice.search.controller', [])
         };
 
         var defineQuery = function () {
+<<<<<<< HEAD
             var searchQuery = {entryTypes:[], parameters:{start:0, retrieveCount:15, sortField:"RELEVANCE"}, blastQuery:{}};
+=======
+            var searchQuery = {
+                entryTypes: [],
+                parameters: {start: 0, retrieveCount: 15, sortField: "RELEVANCE"},
+                blastQuery: {}
+            };
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
             // check search types  : {all: false, strain: true, plasmid: false, part: true, arabidopsis: true}
             for (var type in $scope.searchTypes) {
@@ -228,4 +305,36 @@ angular.module('ice.search.controller', [])
                 }
             }
         };
+<<<<<<< HEAD
+=======
+
+        $scope.sortResults = function (sortType) {
+            sortType = sortType.toUpperCase();
+
+            if (!$scope.searchFilters.parameters) {
+                $scope.searchFilters.parameters = {sortAscending: false};
+            } else {
+                if (sortType === $scope.searchFilters.parameters.sortField) {
+                    $scope.searchFilters.parameters.sortAscending = !$scope.searchFilters.parameters.sortAscending;
+                } else
+                    $scope.searchFilters.parameters.sortAscending = false;
+            }
+
+            $scope.searchFilters.parameters.sortField = sortType;
+            $scope.searchFilters.parameters.start = 0;
+            $scope.loadingSearchResults = true;
+
+            Search().runAdvancedSearch({webSearch: $scope.searchFilters.webSearch}, $scope.searchFilters,
+                function (result) {
+                    $scope.searchResults = result;
+                    $scope.loadingSearchResults = false;
+                },
+                function (error) {
+                    $scope.loadingSearchResults = false;
+                    $scope.searchResults = undefined;
+                    console.log(error);
+                }
+            );
+        };
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     });

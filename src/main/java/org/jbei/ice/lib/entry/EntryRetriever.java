@@ -94,7 +94,11 @@ public class EntryRetriever {
 
         token = token.replaceAll("'", "");
         ArrayList<PartData> dataList = new ArrayList<>();
+<<<<<<< HEAD
         for (Entry entry : dao.getMatchingEntryPartNumbers(token, limit)) {
+=======
+        for (Entry entry : dao.getMatchingEntryPartNumbers(token, limit, null)) {
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             EntryType type = EntryType.nameToType(entry.getRecordType());
             PartData partData = new PartData(type);
             partData.setId(entry.getId());

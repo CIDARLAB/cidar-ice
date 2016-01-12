@@ -153,7 +153,11 @@ public class InfoToModelFactory {
     public static Entry updateEntryField(PartData data, Entry entry) {
         EntryType type = data.getType();
         if (type == null)
+<<<<<<< HEAD:src/main/java/org/jbei/ice/servlet/InfoToModelFactory.java
             return null;
+=======
+            return entry;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/servlet/InfoToModelFactory.java
 
         switch (type) {
             case PLASMID:
@@ -170,9 +174,6 @@ public class InfoToModelFactory {
             case ARABIDOPSIS:
                 entry = setSeedFields(data.getArabidopsisSeedData(), entry);
                 break;
-
-            default:
-                return null;
         }
 
         entry = setCommon(entry, data);

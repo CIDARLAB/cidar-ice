@@ -21,6 +21,7 @@ iceApp.run(function (Authentication, $rootScope) {
     $rootScope.logout = function () {
         Authentication.logout();
     };
+<<<<<<< HEAD
 
 //    $rootScope.$on('$stateChangeStart',
 //        function (event, toState, toParams, fromState, fromParams) {
@@ -50,6 +51,8 @@ iceApp.run(function (Authentication, $rootScope) {
 //                .error(function (data) {
 //                });
 //        })
+=======
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 });
 
 iceApp.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {

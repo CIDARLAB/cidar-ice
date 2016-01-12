@@ -16,6 +16,10 @@ import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.query.dsl.TermContext;
 import org.jbei.ice.lib.account.AccountController;
 import org.jbei.ice.lib.common.logging.Logger;
+<<<<<<< HEAD
+=======
+import org.jbei.ice.lib.dao.DAOFactory;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.jbei.ice.lib.dao.hibernate.HibernateUtil;
 import org.jbei.ice.lib.dto.entry.EntryType;
 import org.jbei.ice.lib.dto.entry.PartData;
@@ -222,6 +226,12 @@ public class HibernateSearch {
                 DocsEnum docs;
                 for (String id : blastResults.keySet()) {
                     docs = context.reader().termDocsEnum(new Term("id", id));
+<<<<<<< HEAD
+=======
+                    if (docs == null)
+                        continue;
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                     int doc;
                     while ((doc = docs.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
                         bitSet.set(doc);
@@ -371,6 +381,10 @@ public class HibernateSearch {
                 if (info == null)
                     continue;
                 // for bulk edit
+<<<<<<< HEAD
+=======
+                info.setViewCount(DAOFactory.getAuditDAO().getHistoryCount(entry));
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 searchResult.setEntryInfo(info);
             }
 
@@ -418,6 +432,12 @@ public class HibernateSearch {
                 DocsEnum docs;
                 for (String id : blastResults.keySet()) {
                     docs = context.reader().termDocsEnum(new Term("id", id));
+<<<<<<< HEAD
+=======
+                    if (docs == null)
+                        continue;
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                     int doc;
                     while ((doc = docs.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
                         bitSet.set(doc);
@@ -432,7 +452,12 @@ public class HibernateSearch {
 
     /**
      * Enables the security filter if the account does not have administrative privileges
+<<<<<<< HEAD
      *  @param userId        identifier for account which is checked for administrative privs
+=======
+     *
+     * @param userId        identifier for account which is checked for administrative privs
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
      * @param fullTextQuery search fulltextquery for which filter is enabled
      */
     protected FullTextQuery checkEnableSecurityFilter(String userId, FullTextQuery fullTextQuery) {

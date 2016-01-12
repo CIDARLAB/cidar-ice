@@ -3,10 +3,17 @@ package org.jbei.ice.lib.utils;
 import org.jbei.ice.lib.common.logging.Logger;
 import org.jbei.ice.lib.dto.ConfigurationKey;
 
+<<<<<<< HEAD
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.util.Properties;
+=======
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.mail.Email;
+import org.apache.commons.mail.EmailException;
+import org.apache.commons.mail.SimpleEmail;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
 /**
  * Utility methods for email.

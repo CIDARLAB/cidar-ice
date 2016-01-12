@@ -1,9 +1,16 @@
 package org.jbei.ice.lib.dto.entry;
 
+<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dto/entry/PartData.java
 import java.util.ArrayList;
 
 import org.jbei.ice.lib.dao.IDataTransferModel;
 import org.jbei.ice.lib.dto.permission.AccessPermission;
+=======
+import org.jbei.ice.lib.dao.IDataTransferModel;
+import org.jbei.ice.lib.dto.permission.AccessPermission;
+
+import java.util.ArrayList;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dto/entry/PartData.java
 
 public class PartData implements IDataTransferModel {
 
@@ -42,6 +49,10 @@ public class PartData implements IDataTransferModel {
     private String fundingSource;
     private long basePairCount;
     private long featureCount;
+<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dto/entry/PartData.java
+=======
+    private long viewCount;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dto/entry/PartData.java
 
     private boolean hasAttachment;
     private boolean hasSample;
@@ -430,6 +441,17 @@ public class PartData implements IDataTransferModel {
         return featureCount;
     }
 
+<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dto/entry/PartData.java
+=======
+    public long getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(long viewCount) {
+        this.viewCount = viewCount;
+    }
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dto/entry/PartData.java
     public void setFeatureCount(long featureCount) {
         this.featureCount = featureCount;
     }

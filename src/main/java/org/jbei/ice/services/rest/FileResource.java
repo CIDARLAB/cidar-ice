@@ -23,7 +23,11 @@ import org.jbei.ice.lib.entry.sequence.SequenceController;
 import org.jbei.ice.lib.entry.sequence.composers.pigeon.PigeonSBOLv;
 import org.jbei.ice.lib.models.Sequence;
 import org.jbei.ice.lib.models.TraceSequence;
+<<<<<<< HEAD
 import org.jbei.ice.lib.net.RemoteAccessController;
+=======
+import org.jbei.ice.lib.net.RemoteEntries;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.jbei.ice.lib.utils.EntriesAsCSV;
 import org.jbei.ice.lib.utils.Utils;
 
@@ -100,7 +104,11 @@ public class FileResource extends RestResource {
             if (file == null)
                 return respond(Response.Status.NOT_FOUND);
 
+<<<<<<< HEAD
             String name = DAOFactory.getAttachmentDAO().getByFileId(fileId).getFileName();
+=======
+            String name = attachmentController.getFileName(userId, fileId);
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             Response.ResponseBuilder response = Response.ok(file);
             response.header("Content-Disposition", "attachment; filename=\"" + name + "\"");
             return response.build();
@@ -116,6 +124,7 @@ public class FileResource extends RestResource {
                                         @PathParam("fileId") String fileId,
                                         @QueryParam("sid") String sid,
                                         @HeaderParam("X-ICE-Authentication-SessionId") String sessionId) {
+<<<<<<< HEAD
         try {
             RemoteAccessController controller = new RemoteAccessController();
             File file = controller.getPublicAttachment(partnerId, fileId);
@@ -129,6 +138,17 @@ public class FileResource extends RestResource {
             Logger.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
+=======
+        String userId = getUserIdFromSessionHeader(sessionId);
+        RemoteEntries entries = new RemoteEntries();
+        File file = entries.getPublicAttachment(userId, partnerId, fileId);
+        if (file == null)
+            return respond(Response.Status.NOT_FOUND);
+
+        Response.ResponseBuilder response = Response.ok(file);
+        response.header("Content-Disposition", "attachment; filename=\"remoteAttachment\"");
+        return response.build();
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     }
 
     @GET

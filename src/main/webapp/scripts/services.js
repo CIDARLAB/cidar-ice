@@ -252,7 +252,11 @@ iceServices.factory('Entry', function ($resource) {
             },
 
             create:{
+<<<<<<< HEAD
                 method:'PUT',
+=======
+                method: 'POST',
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 responseType:'json',
                 url:'/rest/parts',
                 headers:{'X-ICE-Authentication-SessionId':sessionId}
@@ -437,6 +441,16 @@ iceServices.factory('Entry', function ($resource) {
                 method:'DELETE',
                 url:'/rest/parts/:partId/links/:linkId',
                 headers:{'X-ICE-Authentication-SessionId':sessionId}
+<<<<<<< HEAD
+=======
+            },
+
+            updateEntryList: {
+                method: 'POST',
+                responseType: 'json',
+                url: '/rest/parts',
+                headers: {'X-ICE-Authentication-SessionId': sessionId}
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             }
         });
     }
@@ -473,6 +487,15 @@ iceServices.factory('Upload', function ($resource) {
                 headers:{'X-ICE-Authentication-SessionId':sessionId}
             },
 
+<<<<<<< HEAD
+=======
+            deleteEntry: {
+                method:'DELETE',
+                url:'/rest/upload/:importId/entry/:entryId',
+                headers:{'X-ICE-Authentication-SessionId':sessionId}
+            },
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             rename:{
                 method:'PUT',
                 url:'/rest/upload/:importId/name',
@@ -819,11 +842,22 @@ iceServices.factory('Authentication',
                     })
                     .error(function (data, status) {
                         if (status === 401) {
+<<<<<<< HEAD
                             if ($location.path() !== '/login')
                                 $cookies.loginDestination = $location.path();
                             $location.path('/login');
                         }
                         console.log("ERROR", data);
+=======
+                            $cookieStore.remove('userId');
+                            $cookieStore.remove('sessionId');
+
+                            if ($location.path() !== '/login') {
+                                $cookies.loginDestination = $location.path();
+                            }
+                            $location.path('/login');
+                        }
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                     });
             },
 
@@ -860,12 +894,24 @@ iceServices.factory('EntryContextUtil', function () {
             return context;
         },
 
+<<<<<<< HEAD
         setContextCallback:function (callback, available, offset, back) {
+=======
+        resetContext: function () {
+            context = undefined;
+        },
+
+        setContextCallback: function (callback, available, offset, back, sort) {
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             context = {};
             context.callback = callback;
             context.available = available;
             context.offset = offset;
             context.back = back;
+<<<<<<< HEAD
+=======
+            context.sort = sort;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         }
     }
 });

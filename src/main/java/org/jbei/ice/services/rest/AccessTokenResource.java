@@ -1,5 +1,6 @@
 package org.jbei.ice.services.rest;
 
+<<<<<<< HEAD
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -14,6 +15,16 @@ import org.jbei.ice.lib.account.AccountController;
 import org.jbei.ice.lib.account.AccountTransfer;
 import org.jbei.ice.lib.account.model.Account;
 import org.jbei.ice.lib.common.logging.Logger;
+=======
+import org.jbei.ice.lib.account.AccountController;
+import org.jbei.ice.lib.account.AccountTransfer;
+import org.jbei.ice.lib.common.logging.Logger;
+import org.jbei.ice.lib.net.WoRController;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
 /**
  * API for access tokens (also session id for the user interface)
@@ -53,7 +64,11 @@ public class AccessTokenResource extends RestResource {
      * @param sessionId session identifier to invalidates
      */
     @DELETE
+<<<<<<< HEAD
     public void deleteToken(@HeaderParam("X-ICE-Authentication-SessionId") String sessionId) {
+=======
+    public void deleteToken(@HeaderParam(AUTHENTICATION_PARAM_NAME) String sessionId) {
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         getUserIdFromSessionHeader(sessionId);
         accountController.invalidate(sessionId);
     }
@@ -66,6 +81,7 @@ public class AccessTokenResource extends RestResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+<<<<<<< HEAD
     public AccountTransfer get(@HeaderParam("X-ICE-Authentication-SessionId") String sessionId) {
         if (AccountController.isAuthenticated(sessionId)) {
             Account account = accountController.getAccountBySessionKey(sessionId);
@@ -79,5 +95,23 @@ public class AccessTokenResource extends RestResource {
         }
 
         return null;
+=======
+    public Response get(@HeaderParam(AUTHENTICATION_PARAM_NAME) String sessionId) {
+        AccountTransfer transfer = accountController.getAccountBySessionKey(sessionId);
+        if (transfer == null)
+            return super.respond(Response.Status.UNAUTHORIZED);
+        return super.respond(transfer);
+    }
+
+    /**
+     * Validates web of registries access token (api key)
+     */
+    @GET
+    @Path("/web")
+    public Response getWebPartner(@HeaderParam(WOR_PARTNER_TOKEN) String token,
+                                  @QueryParam("url") String url) {
+        WoRController controller = new WoRController();
+        return super.respond(controller.getRegistryPartner(token, url));
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     }
 }

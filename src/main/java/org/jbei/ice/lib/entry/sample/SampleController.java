@@ -47,6 +47,14 @@ public class SampleController {
         storage.setUuid(Utils.generateUUID());
         return storage;
     }
+<<<<<<< HEAD
+
+    public PartSample createSample(String userId, long entryId, PartSample partSample, String strainNamePrefix) {
+        Entry entry = DAOFactory.getEntryDAO().get(entryId);
+        if (entry == null) {
+            Logger.error("Could not retrieve entry with id " + entryId + ". Skipping sample creation");
+            return null;
+=======
 
     public PartSample createSample(String userId, long entryId, PartSample partSample, String strainNamePrefix) {
         Entry entry = DAOFactory.getEntryDAO().get(entryId);
@@ -55,6 +63,61 @@ public class SampleController {
             return null;
         }
 
+        entryAuthorization.expectWrite(userId, entry);
+
+        Sample sample = SampleCreator.createSampleObject(partSample.getLabel(), userId, "");
+        sample.setEntry(entry);
+
+        String depositor;
+        if (partSample.getDepositor() == null) {
+            depositor = userId;
+        } else {
+            depositor = partSample.getDepositor().getEmail();
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
+        }
+        StorageLocation mainLocation = partSample.getLocation();
+
+        // check and create the storage locations
+        if (mainLocation != null) {
+            Storage currentStorage;
+            switch (mainLocation.getType()) {
+                case ADDGENE:
+                    currentStorage = createStorage(depositor, mainLocation.getDisplay(), mainLocation.getType());
+                    currentStorage = storageDAO.create(currentStorage);
+                    break;
+
+                case PLATE96:
+                    currentStorage = createPlate96Location(depositor, mainLocation);
+                    break;
+
+                case SHELF:
+                    currentStorage = createShelfStorage(depositor, mainLocation);
+                    break;
+
+                default:
+                    currentStorage = storageDAO.get(mainLocation.getId());
+                    if (currentStorage == null) {
+                        currentStorage = createStorage(userId, mainLocation.getDisplay(), mainLocation.getType());
+                        currentStorage = storageDAO.create(currentStorage);
+                    }
+
+                    while (mainLocation.getChild() != null) {
+                        StorageLocation child = mainLocation.getChild();
+                        Storage childStorage = storageDAO.get(child.getId());
+                        if (childStorage == null) {
+                            childStorage = createStorage(depositor, child.getDisplay(), child.getType());
+                            childStorage.setParent(currentStorage);
+                            childStorage = storageDAO.create(childStorage);
+                        }
+
+                        currentStorage = childStorage;
+                        mainLocation = child;
+                    }
+            }
+            if (currentStorage == null)
+                return null;
+
+<<<<<<< HEAD
         entryAuthorization.expectWrite(userId, entry);
 
         Sample sample = SampleCreator.createSampleObject(partSample.getLabel(), userId, "");
@@ -178,12 +241,126 @@ public class SampleController {
             Storage childStorage = storageDAO.get(child.getId());
             if (childStorage == null) {
                 childStorage = createStorage(sampleDepositor, child.getDisplay(), child.getType());
+=======
+            sample.setStorage(currentStorage);
+        }
+
+        // create sample. If main location is null then sample is created without location
+        sample = dao.create(sample);
+        String name = entry.getName();
+        if (strainNamePrefix != null && name != null && !name.startsWith(strainNamePrefix)) {
+            new EntryEditor().updateWithNextStrainName(strainNamePrefix, entry);
+        }
+        return sample.toDataTransferObject();
+    }
+
+    /**
+     * Creates location records for a sample contained in a 96 well plate
+     * Provides support for 2-D barcoded systems. Validates the storage hierarchy before creating.
+     */
+    protected Storage createPlate96Location(String sampleDepositor, StorageLocation mainLocation) {
+        // validate: expected format is [PLATE96, WELL, (optional - TUBE)]
+        StorageLocation well = mainLocation.getChild();
+        StorageLocation tube = null;
+        if (well != null) {
+            tube = well.getChild();
+            if (tube != null) {
+                // just check the barcode
+                String barcode = tube.getDisplay();
+                Storage existing = storageDAO.retrieveStorageTube(barcode);
+                if (existing != null) {
+                    ArrayList<Sample> samples = dao.getSamplesByStorage(existing);
+                    if (samples != null && !samples.isEmpty()) {
+                        Logger.error("Barcode \"" + barcode + "\" already has a sample associated with it");
+                        return null;
+                    }
+                }
+            }
+        }
+
+        if (storageDAO.storageExists(mainLocation.getDisplay(), Storage.StorageType.PLATE96)) {
+            if (well == null)
+                return null;
+
+            if (storageDAO.storageExists(well.getDisplay(), Storage.StorageType.WELL)) {
+                // if well has no tube then duplicate
+                if (tube == null) {
+                    Logger.error("Plate " + mainLocation.getDisplay()
+                            + " already has a well storage at " + well.getDisplay());
+                    return null;
+                }
+
+                // check tube
+                // check if there is an existing sample with barcode
+                String barcode = tube.getDisplay();
+                Storage existing = storageDAO.retrieveStorageTube(barcode);
+                if (existing != null) {
+                    ArrayList<Sample> samples = dao.getSamplesByStorage(existing);
+                    if (samples != null && !samples.isEmpty()) {
+                        Logger.error("Barcode \"" + barcode + "\" already has a sample associated with it");
+                        return null;
+                    }
+                }
+            }
+        }
+
+        // create storage locations
+        Storage currentStorage = storageDAO.get(mainLocation.getId());
+        if (currentStorage == null) {
+            currentStorage = createStorage(sampleDepositor, mainLocation.getDisplay(), mainLocation.getType());
+            currentStorage = storageDAO.create(currentStorage);
+        }
+
+        while (mainLocation.getChild() != null) {
+            StorageLocation child = mainLocation.getChild();
+            Storage childStorage = storageDAO.get(child.getId());
+            if (childStorage == null) {
+                childStorage = createStorage(sampleDepositor, child.getDisplay(), child.getType());
                 childStorage.setParent(currentStorage);
                 childStorage = storageDAO.create(childStorage);
             }
 
             currentStorage = childStorage;
             mainLocation = child;
+        }
+
+        return currentStorage;
+    }
+
+    protected Storage createShelfStorage(String depositor, StorageLocation shelf) {
+        // expecting [SHELF, BOX, WELL, TUBE]. ultimately the children of the main location
+        try {
+            StorageLocation box = shelf.getChild();
+            StorageLocation well = box.getChild();
+            well.getChild();
+        } catch (Exception e) {
+            return null;
+        }
+
+        // should contain type and therefore allow for general hierarchy and more intelligence
+        // where it checks if the location is already taken
+
+        // create storage locations
+        Storage currentStorage = createStorage(depositor, shelf.getDisplay(), shelf.getType());
+        currentStorage = storageDAO.create(currentStorage);
+
+        StorageLocation currentLocation = shelf;
+        while (currentLocation.getChild() != null) {
+            StorageLocation child = currentLocation.getChild();
+            Storage childStorage = storageDAO.get(child.getId());
+            if (childStorage == null) {
+                childStorage = createStorage(depositor, child.getDisplay(), child.getType());
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
+                childStorage.setParent(currentStorage);
+                childStorage = storageDAO.create(childStorage);
+            }
+
+            currentStorage = childStorage;
+<<<<<<< HEAD
+            mainLocation = child;
+=======
+            currentLocation = child;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         }
 
         return currentStorage;

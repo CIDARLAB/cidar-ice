@@ -66,6 +66,7 @@ public class EntryController {
         Set<Entry> results;
         FolderDetails details = new FolderDetails();
         Account account = accountController.getByEmail(userId);
+<<<<<<< HEAD
 
         if (accountController.isAdministrator(account)) {
             // no filters
@@ -112,10 +113,115 @@ public class EntryController {
 
     public long getNumberOfEntriesSharedWithUser(String userId) {
         Account account = DAOFactory.getAccountDAO().getByEmail(userId);
+=======
+
+        if (authorization.isAdmin(userId)) {
+            // no filters
+            results = dao.retrieveAllEntries(field, asc, start, limit);
+        } else {
+            // retrieve groups for account and filter by permission
+            Set<Group> accountGroups = new HashSet<>(account.getGroups());
+            GroupController controller = new GroupController();
+            Group everybodyGroup = controller.createOrRetrievePublicGroup();
+            accountGroups.add(everybodyGroup);
+            results = dao.retrieveVisibleEntries(account, accountGroups, field, asc, start, limit);
+        }
+
+        for (Entry entry : results) {
+            PartData info = ModelToInfoFactory.createTableViewData(userId, entry, false);
+            details.getEntries().add(info);
+        }
+
+        return details;
+    }
+
+    /**
+     * Retrieve the number of entries that is visible to a particular user
+     *
+     * @param userId user account unique identifier
+     * @return Number of entries that user with account referenced in the parameter can read.
+     */
+    public long getNumberOfVisibleEntries(String userId) {
+        Account account = accountController.getByEmail(userId);
+
+        if (account == null)
+            return -1;
+
+        if (authorization.isAdmin(userId)) {
+            return dao.getAllEntryCount();
+        }
+
         Set<Group> accountGroups = new HashSet<>(account.getGroups());
         GroupController controller = new GroupController();
         Group everybodyGroup = controller.createOrRetrievePublicGroup();
         accountGroups.add(everybodyGroup);
+        return dao.visibleEntryCount(account, accountGroups);
+    }
+
+    public long getNumberOfEntriesSharedWithUser(String userId) {
+        Account account = DAOFactory.getAccountDAO().getByEmail(userId);
+        Set<Group> accountGroups = new HashSet<>(account.getGroups());
+        GroupController controller = new GroupController();
+        Group everybodyGroup = controller.createOrRetrievePublicGroup();
+        accountGroups.add(everybodyGroup);
+        return dao.sharedEntryCount(account, accountGroups);
+    }
+
+    public List<PartData> getEntriesSharedWithUser(String userId, ColumnField field, boolean asc, int start,
+                                                   int limit) {
+        Account account = DAOFactory.getAccountDAO().getByEmail(userId);
+        Set<Group> accountGroups = new HashSet<>(account.getGroups());
+        GroupController controller = new GroupController();
+        Group everybodyGroup = controller.createOrRetrievePublicGroup();
+        accountGroups.add(everybodyGroup);
+        List<Entry> entries = dao.sharedWithUserEntries(account, accountGroups, field, asc, start, limit);
+
+        ArrayList<PartData> data = new ArrayList<>();
+        for (Entry entry : entries) {
+            PartData info = ModelToInfoFactory.createTableViewData(userId, entry, false);
+            info.setViewCount(DAOFactory.getAuditDAO().getHistoryCount(entry));
+            data.add(info);
+        }
+        return data;
+    }
+
+    public List<PartData> retrieveOwnerEntries(String userId, String ownerEmail,
+                                               ColumnField sort, boolean asc, int start, int limit) {
+        List<Entry> entries;
+        Account account = DAOFactory.getAccountDAO().getByEmail(userId);
+
+        if (authorization.isAdmin(userId) || account.getEmail().equals(ownerEmail)) {
+            entries = dao.retrieveOwnerEntries(ownerEmail, sort, asc, start, limit);
+        } else {
+            Set<Group> accountGroups = new HashSet<>(account.getGroups());
+            GroupController controller = new GroupController();
+            Group everybodyGroup = controller.createOrRetrievePublicGroup();
+            accountGroups.add(everybodyGroup);
+            // retrieve entries for user that can be read by others
+            entries = dao.retrieveUserEntries(account, ownerEmail, accountGroups, sort, asc, start, limit);
+        }
+
+        ArrayList<PartData> data = new ArrayList<>();
+        for (Entry entry : entries) {
+            PartData info = ModelToInfoFactory.createTableViewData(userId, entry, false);
+            info.setViewCount(DAOFactory.getAuditDAO().getHistoryCount(entry));
+            data.add(info);
+        }
+        return data;
+    }
+
+    public long getNumberOfOwnerEntries(String requesterUserEmail, String ownerEmail) {
+        Account account = DAOFactory.getAccountDAO().getByEmail(requesterUserEmail);
+        if (authorization.isAdmin(requesterUserEmail) || account.getEmail().equals(ownerEmail)) {
+            return dao.ownerEntryCount(ownerEmail);
+        }
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
+        Set<Group> accountGroups = new HashSet<>(account.getGroups());
+        GroupController controller = new GroupController();
+        Group everybodyGroup = controller.createOrRetrievePublicGroup();
+        accountGroups.add(everybodyGroup);
+<<<<<<< HEAD
         return dao.sharedEntryCount(account, accountGroups);
     }
 
@@ -171,6 +277,53 @@ public class EntryController {
         Group everybodyGroup = controller.createOrRetrievePublicGroup();
         accountGroups.add(everybodyGroup);
         return dao.ownerEntryCount(account, ownerEmail, accountGroups);
+=======
+        return dao.ownerEntryCount(account, ownerEmail, accountGroups);
+    }
+
+    /**
+     * Determines if the two entries can be linked
+     *
+     * @param entry parent in link hierarchy
+     * @param link  child in link hierarchy
+     * @return true if the two entries can be linked in the hierarchy specified
+     */
+    private boolean canLink(Entry entry, Entry link) {
+        if (entry == null || link == null || entry.getId() == link.getId())
+            return false;
+
+        if (link.getLinkedEntries().contains(entry))
+            return false;
+
+        EntryType linkedType = EntryType.nameToType(link.getRecordType());
+        EntryType type = EntryType.nameToType(entry.getRecordType());
+        if (type == null || linkedType == null)
+            return false;
+
+        switch (type) {
+            case PLASMID:
+                if (linkedType != type && linkedType != EntryType.PART)
+                    return false;
+                break;
+
+            case PART:
+                if (linkedType != type)
+                    return false;
+                break;
+
+            case STRAIN:
+                if (linkedType != type && linkedType != EntryType.PLASMID && linkedType != EntryType.PART)
+                    return false;
+                break;
+
+            case ARABIDOPSIS:
+                if (linkedType != type && linkedType != EntryType.PART)
+                    return false;
+                break;
+        }
+
+        return true;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     }
 
     public long updatePart(String userId, long partId, PartData part) {
@@ -182,12 +335,23 @@ public class EntryController {
         if (part.getLinkedParts() != null && part.getLinkedParts().size() > 0) {
             for (PartData data : part.getLinkedParts()) {
                 Entry linked = dao.getByPartNumber(data.getPartId());
+<<<<<<< HEAD
                 if (linked == null)
                     continue;
 
                 if (!authorization.canRead(userId, linked)) {
                     continue;
                 }
+=======
+
+                // check permissions on link
+                if (!authorization.canRead(userId, linked)) {
+                    continue;
+                }
+
+                if (!canLink(entry, linked))
+                    continue;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
                 entry.getLinkedEntries().add(linked);
             }
@@ -497,6 +661,7 @@ public class EntryController {
             Logger.error(de);
             return false;
         }
+<<<<<<< HEAD
 
         return true;
     }
@@ -512,6 +677,23 @@ public class EntryController {
         if (!entry.getLinkedEntries().remove(linkedEntry))
             return false;
 
+=======
+
+        return true;
+    }
+
+    public boolean removeLink(String userId, long partId, long linkedPart) {
+        Entry entry = dao.get(partId);
+        if (entry == null)
+            return false;
+
+        authorization.expectWrite(userId, entry);
+        Entry linkedEntry = dao.get(linkedPart);
+
+        if (!entry.getLinkedEntries().remove(linkedEntry))
+            return false;
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         return dao.update(entry) != null;
     }
 

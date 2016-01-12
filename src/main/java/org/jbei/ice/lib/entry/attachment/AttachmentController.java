@@ -51,12 +51,30 @@ public class AttachmentController {
         Attachment attachment = dao.getByFileId(fileId);
         if (attachment == null)
             return null;
+<<<<<<< HEAD
 
         entryAuthorization.expectRead(userId, attachment.getEntry());
 
         String dataDir = Utils.getConfigValue(ConfigurationKey.DATA_DIRECTORY);
         File attachmentDir = Paths.get(dataDir, attachmentDirName).toFile();
         return dao.getFile(attachmentDir, attachment);
+=======
+
+        entryAuthorization.expectRead(userId, attachment.getEntry());
+
+        String dataDir = Utils.getConfigValue(ConfigurationKey.DATA_DIRECTORY);
+        File attachmentDir = Paths.get(dataDir, attachmentDirName).toFile();
+        return dao.getFile(attachmentDir, attachment);
+    }
+
+    public String getFileName(String userId, String fileId) {
+        Attachment attachment = dao.getByFileId(fileId);
+        if (attachment == null)
+            return null;
+
+        entryAuthorization.expectRead(userId, attachment.getEntry());
+        return dao.getByFileId(fileId).getFileName();
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     }
 
     /**

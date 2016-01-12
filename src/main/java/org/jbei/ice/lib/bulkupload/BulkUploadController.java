@@ -282,10 +282,17 @@ public class BulkUploadController {
         Account draftAccount = draft.getAccount();
         if (!userId.equals(draftAccount.getEmail()) && !accountController.isAdministrator(userId))
             throw new PermissionException("No permissions to delete draft " + draftId);
+<<<<<<< HEAD
 
         // delete all associated entries. for strain with plasmids both are returned
         // todo : use task to speed up process and also check for status
 
+=======
+
+        // delete all associated entries. for strain with plasmids both are returned
+        // todo : use task to speed up process and also check for status
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         ArrayList<Long> entryIds = dao.getEntryIds(draft);
         for (long entryId : entryIds) {
             try {
@@ -524,11 +531,101 @@ public class BulkUploadController {
         } catch (Exception e) {
             Logger.error(e);
             return false;
+<<<<<<< HEAD
         }
 
         return true;
     }
 
+    public List<AccessPermission> getUploadPermissions(String userId, long uploadId) {
+        List<AccessPermission> permissions = new ArrayList<>();
+        BulkUpload upload = dao.get(uploadId);
+        if (upload == null)
+            return permissions;
+
+        authorization.expectWrite(userId, upload);
+
+        if (upload.getPermissions() != null) {
+            for (Permission permission : upload.getPermissions())
+                permissions.add(permission.toDataTransferObject());
+        }
+
+        return permissions;
+    }
+
+    /**
+     * Adds specified access permission to the bulk upload.
+     *
+     * @param userId   unique identifier of user making the request. Must be an admin or owner of the upload
+     * @param uploadId unique identifier for bulk upload
+     * @param access   details about the permission to the added
+     * @return added permission with identifier that can be used to remove/delete the permission
+     * @throws java.lang.IllegalArgumentException if the upload cannot be located using its identifier
+     */
+    public AccessPermission addPermission(String userId, long uploadId, AccessPermission access) {
+        BulkUpload upload = dao.get(uploadId);
+        if (upload == null)
+            throw new IllegalArgumentException("Could not locate bulk upload with id " + uploadId);
+
+        access.setTypeId(uploadId);
+        Permission permission = new PermissionsController().addPermission(userId, access);
+        upload.getPermissions().add(permission);
+        dao.update(upload);
+        return permission.toDataTransferObject();
+    }
+
+    /**
+     * Removes specified permission from bulk upload
+     *
+     * @param userId       unique identifier of user making the request. Must be an admin or owner of the bulk upload
+     * @param uploadId     unique identifier for bulk upload
+     * @param permissionId unique identifier for permission that has been previously added to upload
+     * @return true if deletion is successful
+     * @throws java.lang.IllegalArgumentException if upload or permission cannot be located by their identifiers
+     */
+    public boolean deletePermission(String userId, long uploadId, long permissionId) {
+        BulkUpload upload = dao.get(uploadId);
+        if (upload == null)
+            throw new IllegalArgumentException("Could not locate bulk upload with id " + uploadId);
+
+        authorization.expectWrite(userId, upload);
+        Permission toDelete = null;
+
+        if (upload.getPermissions() != null) {
+            for (Permission permission : upload.getPermissions()) {
+                if (permission.getId() == permissionId) {
+                    toDelete = permission;
+                    break;
+                }
+            }
+=======
+        }
+
+        return true;
+    }
+
+    public boolean deleteEntry(String userId, long uploadId, long entryId) {
+        try {
+            BulkUpload upload = dao.get(uploadId);
+            Entry entry = new EntryDAO().get(entryId);
+            authorization.expectWrite(userId, upload);
+            upload.getContents().remove(entry);
+            return true;
+        } catch (Exception e) {
+            Logger.error(e);
+            return false;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
+        }
+    }
+
+<<<<<<< HEAD
+        if (toDelete == null)
+            throw new IllegalArgumentException("Could not locate permission for deletion");
+
+        upload.getPermissions().remove(toDelete);
+        DAOFactory.getPermissionDAO().delete(toDelete);
+        return dao.update(upload) != null;
+=======
     public List<AccessPermission> getUploadPermissions(String userId, long uploadId) {
         List<AccessPermission> permissions = new ArrayList<>();
         BulkUpload upload = dao.get(uploadId);
@@ -598,5 +695,34 @@ public class BulkUploadController {
         upload.getPermissions().remove(toDelete);
         DAOFactory.getPermissionDAO().delete(toDelete);
         return dao.update(upload) != null;
+    }
+
+    /**
+     * Retrieves part numbers that match the token passed in the parameter, that are compatible with the type
+     * in the parameter. Two entry types are compatible if they can be associated with specific entries (as descendants)
+     * in a hierarchical relationship
+     *
+     * @param type  type of entry the part numbers must be compatible with
+     * @param token part number token to match
+     * @param limit maximum number of matches to return
+     * @return list of part numbers that can be linked to the type of entry
+     */
+    public ArrayList<String> getMatchingPartNumbersForLinks(EntryType type, String token, int limit) {
+        ArrayList<String> dataList = new ArrayList<>();
+        if (token == null)
+            return dataList;
+
+        Set<String> compatibleTypes = new HashSet<>();
+        compatibleTypes.add(type.getName());
+        compatibleTypes.add(EntryType.PART.getName());
+        if (type == EntryType.STRAIN)
+            compatibleTypes.add(EntryType.PLASMID.getName());
+
+        token = token.replaceAll("'", "");
+        for (Entry entry : DAOFactory.getEntryDAO().getMatchingEntryPartNumbers(token, limit, compatibleTypes)) {
+            dataList.add(entry.getPartNumber());
+        }
+        return dataList;
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     }
 }

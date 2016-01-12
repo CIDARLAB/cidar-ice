@@ -3,7 +3,10 @@ package org.jbei.ice.lib.bulkupload;
 import org.jbei.ice.lib.access.Permission;
 import org.jbei.ice.lib.account.AccountTransfer;
 import org.jbei.ice.lib.account.model.Account;
+<<<<<<< HEAD
 import org.jbei.ice.lib.account.model.Preference;
+=======
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.jbei.ice.lib.dao.IDataModel;
 import org.jbei.ice.lib.entry.model.Entry;
 
@@ -58,12 +61,15 @@ public class BulkUpload implements IDataModel {
             inverseJoinColumns = {@JoinColumn(name = "entry_id", nullable = false)})
     private Set<Entry> contents = new HashSet<>();
 
+<<<<<<< HEAD
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(name = "bulk_upload_preferences",
             joinColumns = {@JoinColumn(name = "bulk_upload_id", nullable = false)},
             inverseJoinColumns = {@JoinColumn(name = "preference_id", nullable = false)})
     private Set<Preference> preferences = new HashSet<>();
 
+=======
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.REMOVE, CascadeType.MERGE})
     @JoinTable(name = "bulk_upload_permissions",
             joinColumns = {@JoinColumn(name = "bulk_upload_id", nullable = false)},
@@ -123,10 +129,6 @@ public class BulkUpload implements IDataModel {
 
     public void setImportType(String importType) {
         this.importType = importType;
-    }
-
-    public Set<Preference> getPreferences() {
-        return preferences;
     }
 
     public BulkUploadStatus getStatus() {

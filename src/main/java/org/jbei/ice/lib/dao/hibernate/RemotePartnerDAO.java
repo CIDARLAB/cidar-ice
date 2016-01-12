@@ -1,4 +1,5 @@
 package org.jbei.ice.lib.dao.hibernate;
+<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/RemotePartnerDAO.java
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,9 +7,17 @@ import java.util.List;
 import org.jbei.ice.lib.common.logging.Logger;
 import org.jbei.ice.lib.dao.DAOException;
 import org.jbei.ice.lib.net.RemotePartner;
+=======
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/RemotePartnerDAO.java
 
 import org.hibernate.HibernateException;
 import org.hibernate.criterion.Restrictions;
+import org.jbei.ice.lib.common.logging.Logger;
+import org.jbei.ice.lib.dao.DAOException;
+import org.jbei.ice.lib.net.RemotePartner;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Data Accessor Object for managing {@link org.jbei.ice.lib.net.RemotePartner} Objects
@@ -18,10 +27,10 @@ import org.hibernate.criterion.Restrictions;
 public class RemotePartnerDAO extends HibernateRepository<RemotePartner> {
 
     @SuppressWarnings("unchecked")
-    public ArrayList<RemotePartner> retrieveRegistryPartners() throws DAOException {
+    public List<RemotePartner> getRegistryPartners() throws DAOException {
         try {
             List list = currentSession().createCriteria(RemotePartner.class).list();
-            return new ArrayList<RemotePartner>(list);
+            return new ArrayList<>(list);
         } catch (HibernateException he) {
             Logger.error(he);
             throw new DAOException(he);

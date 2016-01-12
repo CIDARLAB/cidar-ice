@@ -25,7 +25,11 @@ iceControllers.controller('ActionMenuController', function ($stateParams, $scope
         $scope.userFolders = undefined;
         $scope.selectedFolders = [];
 
+<<<<<<< HEAD
         folders.getByType({folderType: "personal"}, function (data) {
+=======
+        folders.getByType({folderType: "personal", canEdit: "true"}, function (data) {
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             if (data.length)
                 $scope.userFolders = data;
         });
@@ -422,25 +426,43 @@ iceControllers.controller('ProfileGroupsController', function ($rootScope, $scop
     }
 });
 
+<<<<<<< HEAD
 iceControllers.controller('ProfileEntryController', function ($scope, $location, $cookieStore, $stateParams, User) {
+=======
+iceControllers.controller('ProfileEntryController', function ($scope, $location, $cookieStore, $stateParams, User, Entry) {
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     $scope.maxSize = 5;
     $scope.currentPage = 1;
 
     var user = User($cookieStore.get("sessionId"));
     var profileId = $stateParams.id;
     $location.path("/profile/" + profileId + "/entries", false);
+<<<<<<< HEAD
     var params = {userId: profileId};
 
     user.getEntries(params, function (result) {
+=======
+    $scope.params = {userId: profileId, sort: "created", asc: false};
+
+    user.getEntries($scope.params, function (result) {
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         $scope.folder = result;
     });
 
     $scope.sort = function (sortType) {
         $scope.folder = null;
+<<<<<<< HEAD
         params.sort = sortType;
         params.offset = 0;
         params.asc = !params.asc;
         user.getEntries(params, function (result) {
+=======
+        // only change if switching to different sort
+        $scope.params.asc = $scope.params.sort === sortType ? !$scope.params.asc : false;
+        $scope.params.sort = sortType;
+        $scope.params.offset = 0;
+        user.getEntries($scope.params, function (result) {
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             $scope.folder = result;
             $scope.currentPage = 1;
         }, function (error) {
@@ -448,14 +470,34 @@ iceControllers.controller('ProfileEntryController', function ($scope, $location,
         });
     };
 
+<<<<<<< HEAD
+=======
+    $scope.tooltipDetails = function (entry) {
+        $scope.currentTooltip = undefined;
+        var sessionId = $cookieStore.get("sessionId");
+
+        Entry(sessionId).tooltip({partId: entry.id},
+            function (result) {
+                $scope.currentTooltip = result;
+            }, function (error) {
+                console.error(error);
+            });
+    };
+
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     $scope.setUserEntriesPage = function (pageNo) {
         if (pageNo == undefined || isNaN(pageNo))
             pageNo = 1;
 
         console.log(pageNo);
         $scope.loadingPage = true;
+<<<<<<< HEAD
         params.offset = (pageNo - 1) * 15;
         user.getEntries(params, function (result) {
+=======
+        $scope.params.offset = (pageNo - 1) * 15;
+        user.getEntries($scope.params, function (result) {
+>>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             console.log("result", result);
             $scope.folder = result;
             $scope.loadingPage = false;
