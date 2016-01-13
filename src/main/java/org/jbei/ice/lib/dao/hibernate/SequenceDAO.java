@@ -21,10 +21,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
-<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/SequenceDAO.java
-import java.util.LinkedHashSet;
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/SequenceDAO.java
 import java.util.Set;
 
 /**
@@ -263,29 +259,17 @@ public class SequenceDAO extends HibernateRepository<Sequence> {
      * @throws DAOException
      */
     @SuppressWarnings("unchecked")
-<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/SequenceDAO.java
-    public Set<Sequence> getAllSequences() {
-=======
     public Sequence getSequence(int offset) throws DAOException {
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/SequenceDAO.java
         Session session = currentSession();
         try {
             Criteria criteria = session.createCriteria(Sequence.class);
 
             Criteria entryC = criteria.createCriteria("entry", "entry");
             entryC.add(Restrictions.disjunction()
-<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/SequenceDAO.java
-                                   .add(Restrictions.eq("visibility", Visibility.OK.getValue()))
-                                   .add(Restrictions.isNull("visibility"))
-                                   .add(Restrictions.ne("ownerEmail", "system")));
-
-            return new LinkedHashSet<>(criteria.list());
-=======
                     .add(Restrictions.eq("visibility", Visibility.OK.getValue())));
             criteria.setFirstResult(offset);
             criteria.setMaxResults(1);
             return (Sequence) criteria.uniqueResult();
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/SequenceDAO.java
         } catch (HibernateException he) {
             Logger.error(he);
             throw new DAOException(he);
@@ -293,8 +277,6 @@ public class SequenceDAO extends HibernateRepository<Sequence> {
     }
 
     /**
-<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/SequenceDAO.java
-=======
      * @return number of sequences available for all valid (visibility=9) entry object
      */
     public int getSequenceCount() {
@@ -315,7 +297,6 @@ public class SequenceDAO extends HibernateRepository<Sequence> {
     }
 
     /**
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/SequenceDAO.java
      * Retrieve the {@link Feature} object with the given DNA sequence string.
      *
      * @param featureDnaSequence dna sequence of feature

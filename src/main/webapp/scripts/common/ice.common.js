@@ -13,10 +13,7 @@ angular.module('ice.dependencies', ['ngRoute',
     'ice.entry',
     'ice.collection',
     'ice.wor',
-<<<<<<< HEAD
-    'ice.admin'
-=======
     'ice.admin',
-    'ice.common.service'
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
+    'ice.common.service',
+    'ice.profile'
 ]);

@@ -13,7 +13,7 @@
                     <div ng-if="entrySamples" style="vertical-align: top; padding-bottom: 15px">
                         <b class="font-90em">Affected Samples</b><br>
                         <label class="checkbox-inline font-90em" ng-repeat="sample in entrySamples">
-                            <input type="checkbox" ng-model="newComment.sample">{{sample.label}}
+                            <input type="checkbox" ng-click="addRemoveSample(sample)">{{sample.label}}
                         </label>
                     </div>
                     <div>
@@ -39,7 +39,15 @@
                 <small class="attachment_small_text pull-right">{{comment.commentDate | date:'medium'}}</small>
                 <br><br>
 
-                <div ng-if="!comment.edit">{{comment.message}}</div>
+                <div ng-if="!comment.edit">{{comment.message}}
+                    <div ng-if="comment.samples != null && comment.samples.length">
+                        <br><b style="color: #a52a2a">Affected Samples</b>
+
+                        <div ng-repeat="sample in (samples = (comment.samples | orderBy: 'id':true))">
+                            &nbsp; &nbsp;<i class="fa fa-flask"></i> {{sample.label}}
+                        </div>
+                    </div>
+                </div>
                 <div ng-if="comment.edit"><textarea rows="5" cols="60" class="input_box"
                                                     ng-model="comment.message"></textarea>
 
@@ -53,7 +61,7 @@
                 <br><br>
 
                 <div style="height: 1px; margin: 9px 0; overflow: hidden; background-color: #e5e5e5"></div>
-                <div class="pull-left"><a ng-href="/profile/{{comment.accountTransfer.id}}">{{comment.accountTransfer.firstName}}
+                <div class="pull-left"><a ng-href="profile/{{comment.accountTransfer.id}}">{{comment.accountTransfer.firstName}}
                     {{comment.accountTransfer.lastName}}</a> &nbsp; <i ng-if="comment.modified" class="small opacity_4">Last
                     edited on {{comment.modified | date: 'short'}}</i></div>
                 <span ng-if="user.email===comment.accountTransfer.email||user.isAdmin"></span>

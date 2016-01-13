@@ -8,7 +8,8 @@
         <span ng-if="samples && samples.length">
             &nbsp;
             <span ng-if="!isAddGene(samples)">
-            <button ng-if="!samples[0].inCart" ng-click="openAddToCart(entry.id)" type="button" class="ice-button">
+            <button ng-if="!samples[0].inCart" ng-click="openAddToCart(entry.id, samples)" type="button"
+                    class="ice-button">
                 <i style="font-size: 14px; color: #007dbc" class="fa fa-shopping-cart"></i> Add to Cart
             </button>
             <button ng-if="samples[0].inCart" ng-click="removeFromCart(null, entry);samples[0].inCart=false"
@@ -29,17 +30,14 @@
         <div class="col-md-12" ng-init="newSample.location.type=undefined">
             <b class="strong">Storage Type</b>
 
-            <div class="btn-group">
-                <button type="button" class="btn btn-sm btn-default dropdown-toggle">
+            <div class="btn-group" dropdown>
+                <button type="button" class="btn btn-sm btn-default" dropdown-toggle>
                     Select <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
                     <li ng-click="newSample.location.type ='PLATE96'"><a>96 Well Plate</a></li>
                     <li ng-click="newSample.location.type ='ADDGENE'"><a>AddGene</a></li>
-<<<<<<< HEAD
-=======
                     <li ng-click="newSample.location.type ='SHELF'"><a>Shelf</a></li>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 </ul>
             </div>
 
@@ -63,7 +61,7 @@
                         <input class="input_box" ng-model="newSample.label" placeHolder="Enter description">
                         <br>
                         <span style="color: #777"><span my-current-time="format"></span></span> - <a
-                            ng-href="/profile/{{user.id}}">{{user.firstName}} {{user.lastName}}</a>
+                            ng-href="profile/{{user.id}}">{{user.firstName}} {{user.lastName}}</a>
                     </td>
                 </tr>
             </table>
@@ -86,10 +84,9 @@
                        'alert_color':hasWell(row, col)&&!hasTube(row,col), 'fa-circle-thin':!hasContent(row, col),
                        'fa-circle':hasContent(row, col)}"
                            style="font-size: 30px"
-                           popover-trigger="manual" popover-toggle="newSample.open.cell === row + (10+col+'').slice(-2)"
                            ng-click="cellBarcodeClick(row, col)"
                            popover-placement="bottom" popover-title="Well {{row + (10+col+'').slice(-2)}}"
-                           popover-template="/scripts/entry/sample/barcode-popover.html"></i>
+                           popover-template="newSampleTemplate"></i>
                     </td>
                 </tr>
                 <tr>
@@ -98,13 +95,11 @@
                         <input class="input_box" ng-model="newSample.label" placeHolder="Enter label">
                         <br>
                         <span style="color: #777" my-current-time="format"></span> - <a
-                            ng-href="/profile/{{user.id}}">{{user.firstName}} {{user.lastName}}</a>
+                            ng-href="profile/{{user.id}}">{{user.firstName}} {{user.lastName}}</a>
                     </td>
                 </tr>
             </table>
 
-<<<<<<< HEAD
-=======
             <table class="entry_sample_panel" ng-if="newSample.location.type==='SHELF'">
                 <tr>
                     <td colspan="4">
@@ -141,12 +136,11 @@
                         <input class="input_box" ng-model="newSample.label" placeHolder="Enter description">
                         <br>
                         <span style="color: #777"><span my-current-time="format"></span></span> - <a
-                            ng-href="/profile/{{user.id}}">{{user.firstName}} {{user.lastName}}</a>
+                            ng-href="profile/{{user.id}}">{{user.firstName}} {{user.lastName}}</a>
                     </td>
                 </tr>
             </table>
 
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             <div class="pad_top" ng-if="newSample.location.type">
                 <button type="submit" class="btn btn-primary btn-sm" ng-click="createNewSample()">Submit</button>
                 <button type="button" class="btn btn-default btn-sm" ng-click="newSample.add=false">Cancel</button>

@@ -6,10 +6,6 @@ package org.jbei.ice.lib.account;
 import org.jbei.ice.lib.AccountCreator;
 import org.jbei.ice.lib.account.model.Account;
 import org.jbei.ice.lib.dao.hibernate.HibernateUtil;
-<<<<<<< HEAD
-
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -116,11 +112,7 @@ public class AccountControllerTest {
         Assert.assertFalse(controller.isAdministrator(account.getEmail()));
 
         account = AccountCreator.createTestAccount("testIsAdministratorAdmin", true);
-<<<<<<< HEAD
-        Assert.assertTrue(controller.isAdministrator(account));
-=======
         Assert.assertTrue(controller.isAdministrator(account.getEmail()));
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     }
 
     @Test

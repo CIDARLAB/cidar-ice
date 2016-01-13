@@ -2,10 +2,7 @@ package org.jbei.ice.lib.search.blast;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-<<<<<<< HEAD
-=======
 import org.apache.commons.lang.StringUtils;
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.apache.commons.lang.math.NumberUtils;
 import org.biojava.bio.seq.DNATools;
 import org.biojava.bio.seq.RNATools;
@@ -13,10 +10,7 @@ import org.biojava.bio.symbol.IllegalSymbolException;
 import org.biojava.bio.symbol.SymbolList;
 import org.jbei.ice.lib.common.logging.Logger;
 import org.jbei.ice.lib.dao.DAOFactory;
-<<<<<<< HEAD
-=======
 import org.jbei.ice.lib.dao.hibernate.SequenceDAO;
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.jbei.ice.lib.dto.ConfigurationKey;
 import org.jbei.ice.lib.dto.entry.EntryType;
 import org.jbei.ice.lib.dto.entry.PartData;
@@ -34,14 +28,10 @@ import java.nio.channels.OverlappingFileLockException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-<<<<<<< HEAD
-import java.util.*;
-=======
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -230,13 +220,6 @@ public class BlastPlus {
         File lockFile = Paths.get(blastFolder.toString(), LOCK_FILE_NAME).toFile();
         if (lockFile.exists()) {
             if (lockFile.lastModified() <= (System.currentTimeMillis() - (1000 * 60 * 60 * 24)))
-<<<<<<< HEAD
-                lockFile.delete();
-            else {
-                Logger.info("Blast db locked (lockfile - " + lockFile.getAbsolutePath() + "). Rebuild aborted!");
-                return;
-            }
-=======
                 if (!lockFile.delete()) {
                     Logger.warn("Could not delete outdated blast lockfile. Delete the following file manually: "
                             + lockFile.getAbsolutePath());
@@ -244,22 +227,17 @@ public class BlastPlus {
                     Logger.info("Blast db locked (lockfile - " + lockFile.getAbsolutePath() + "). Rebuild aborted!");
                     return;
                 }
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         }
 
         try {
             if (!Files.exists(blastFolder)) {
                 Logger.info("Blast folder (" + blastFolder.toString() + ") does not exist. Creating...");
-<<<<<<< HEAD
-                Files.createDirectories(blastFolder);
-=======
                 try {
                     Files.createDirectories(blastFolder);
                 } catch (Exception e) {
                     Logger.warn("Could not create blast folder. Create it manually or all blast runs will fail");
                     return;
                 }
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             }
 
             if (!force && blastDatabaseExists()) {
@@ -453,11 +431,6 @@ public class BlastPlus {
      * @throws BlastException
      */
     private static void writeBigFastaFile(BufferedWriter writer) throws BlastException {
-<<<<<<< HEAD
-        Set<Sequence> sequencesList;
-        sequencesList = DAOFactory.getSequenceDAO().getAllSequences();
-        for (Sequence sequence : sequencesList) {
-=======
         SequenceDAO sequenceDAO = DAOFactory.getSequenceDAO();
         long count = sequenceDAO.getSequenceCount();
         if (count <= 0)
@@ -466,7 +439,6 @@ public class BlastPlus {
         int offset = 0;
         while (offset < count) {
             Sequence sequence = sequenceDAO.getSequence(offset++);
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             long id = sequence.getEntry().getId();
 //            boolean circular = false;
 //            if (sequence.getEntry() instanceof Plasmid) {

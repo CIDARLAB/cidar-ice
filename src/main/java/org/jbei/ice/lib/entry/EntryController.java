@@ -3,9 +3,9 @@ package org.jbei.ice.lib.entry;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jbei.ice.ApplicationController;
-import org.jbei.ice.lib.access.PermissionException;
 import org.jbei.ice.lib.access.PermissionsController;
 import org.jbei.ice.lib.account.AccountController;
+import org.jbei.ice.lib.account.AccountTransfer;
 import org.jbei.ice.lib.account.PreferencesController;
 import org.jbei.ice.lib.account.model.Account;
 import org.jbei.ice.lib.common.logging.Logger;
@@ -18,10 +18,11 @@ import org.jbei.ice.lib.dto.comment.UserComment;
 import org.jbei.ice.lib.dto.entry.*;
 import org.jbei.ice.lib.dto.folder.FolderDetails;
 import org.jbei.ice.lib.dto.permission.AccessPermission;
+import org.jbei.ice.lib.dto.sample.PartSample;
 import org.jbei.ice.lib.dto.user.PreferenceKey;
 import org.jbei.ice.lib.entry.model.Entry;
+import org.jbei.ice.lib.entry.sample.model.Sample;
 import org.jbei.ice.lib.entry.sequence.SequenceAnalysisController;
-import org.jbei.ice.lib.folder.Folder;
 import org.jbei.ice.lib.group.Group;
 import org.jbei.ice.lib.group.GroupController;
 import org.jbei.ice.lib.models.*;
@@ -66,54 +67,6 @@ public class EntryController {
         Set<Entry> results;
         FolderDetails details = new FolderDetails();
         Account account = accountController.getByEmail(userId);
-<<<<<<< HEAD
-
-        if (accountController.isAdministrator(account)) {
-            // no filters
-            results = dao.retrieveAllEntries(field, asc, start, limit);
-        } else {
-            // retrieve groups for account and filter by permission
-            Set<Group> accountGroups = new HashSet<>(account.getGroups());
-            GroupController controller = new GroupController();
-            Group everybodyGroup = controller.createOrRetrievePublicGroup();
-            accountGroups.add(everybodyGroup);
-            results = dao.retrieveVisibleEntries(account, accountGroups, field, asc, start, limit);
-        }
-
-        for (Entry entry : results) {
-            PartData info = ModelToInfoFactory.createTableViewData(userId, entry, false);
-            details.getEntries().add(info);
-        }
-
-        return details;
-    }
-
-    /**
-     * Retrieve the number of entries that is visible to a particular user
-     *
-     * @param userId user account unique identifier
-     * @return Number of entries that user with account referenced in the parameter can read.
-     */
-    public long getNumberOfVisibleEntries(String userId) {
-        Account account = accountController.getByEmail(userId);
-
-        if (account == null)
-            return -1;
-
-        if (accountController.isAdministrator(account)) {
-            return dao.getAllEntryCount();
-        }
-
-        Set<Group> accountGroups = new HashSet<>(account.getGroups());
-        GroupController controller = new GroupController();
-        Group everybodyGroup = controller.createOrRetrievePublicGroup();
-        accountGroups.add(everybodyGroup);
-        return dao.visibleEntryCount(account, accountGroups);
-    }
-
-    public long getNumberOfEntriesSharedWithUser(String userId) {
-        Account account = DAOFactory.getAccountDAO().getByEmail(userId);
-=======
 
         if (authorization.isAdmin(userId)) {
             // no filters
@@ -160,11 +113,7 @@ public class EntryController {
 
     public long getNumberOfEntriesSharedWithUser(String userId) {
         Account account = DAOFactory.getAccountDAO().getByEmail(userId);
-        Set<Group> accountGroups = new HashSet<>(account.getGroups());
-        GroupController controller = new GroupController();
-        Group everybodyGroup = controller.createOrRetrievePublicGroup();
-        accountGroups.add(everybodyGroup);
-        return dao.sharedEntryCount(account, accountGroups);
+        return dao.sharedEntryCount(account, account.getGroups());
     }
 
     public List<PartData> getEntriesSharedWithUser(String userId, ColumnField field, boolean asc, int start,
@@ -216,68 +165,10 @@ public class EntryController {
             return dao.ownerEntryCount(ownerEmail);
         }
 
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         Set<Group> accountGroups = new HashSet<>(account.getGroups());
         GroupController controller = new GroupController();
         Group everybodyGroup = controller.createOrRetrievePublicGroup();
         accountGroups.add(everybodyGroup);
-<<<<<<< HEAD
-        return dao.sharedEntryCount(account, accountGroups);
-    }
-
-    public List<PartData> getEntriesSharedWithUser(String userId, ColumnField field, boolean asc, int start,
-                                                   int limit) {
-        Account account = DAOFactory.getAccountDAO().getByEmail(userId);
-        Set<Group> accountGroups = new HashSet<>(account.getGroups());
-        GroupController controller = new GroupController();
-        Group everybodyGroup = controller.createOrRetrievePublicGroup();
-        accountGroups.add(everybodyGroup);
-        List<Entry> entries = dao.sharedWithUserEntries(account, accountGroups, field, asc, start, limit);
-
-        ArrayList<PartData> data = new ArrayList<>();
-        for (Entry entry : entries) {
-            PartData info = ModelToInfoFactory.createTableViewData(userId, entry, false);
-            data.add(info);
-        }
-        return data;
-    }
-
-    public List<PartData> retrieveOwnerEntries(String userId, String ownerEmail,
-                                               ColumnField sort, boolean asc, int start, int limit) {
-        List<Entry> entries;
-        Account account = DAOFactory.getAccountDAO().getByEmail(userId);
-
-        if (accountController.isAdministrator(account) || account.getEmail().equals(ownerEmail)) {
-            entries = dao.retrieveOwnerEntries(ownerEmail, sort, asc, start, limit);
-        } else {
-            Set<Group> accountGroups = new HashSet<>(account.getGroups());
-            GroupController controller = new GroupController();
-            Group everybodyGroup = controller.createOrRetrievePublicGroup();
-            accountGroups.add(everybodyGroup);
-            // retrieve entries for user that can be read by others
-            entries = dao.retrieveUserEntries(account, ownerEmail, accountGroups, sort, asc, start, limit);
-        }
-
-        ArrayList<PartData> data = new ArrayList<>();
-        for (Entry entry : entries) {
-            PartData info = ModelToInfoFactory.createTableViewData(userId, entry, false);
-            data.add(info);
-        }
-        return data;
-    }
-
-    public long getNumberOfOwnerEntries(String requesterUserEmail, String ownerEmail) {
-        Account account = DAOFactory.getAccountDAO().getByEmail(requesterUserEmail);
-        if (accountController.isAdministrator(account) || account.getEmail().equals(ownerEmail)) {
-            return dao.ownerEntryCount(ownerEmail);
-        }
-
-        Set<Group> accountGroups = new HashSet<>(account.getGroups());
-        GroupController controller = new GroupController();
-        Group everybodyGroup = controller.createOrRetrievePublicGroup();
-        accountGroups.add(everybodyGroup);
-        return dao.ownerEntryCount(account, ownerEmail, accountGroups);
-=======
         return dao.ownerEntryCount(account, ownerEmail, accountGroups);
     }
 
@@ -323,7 +214,6 @@ public class EntryController {
         }
 
         return true;
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     }
 
     public long updatePart(String userId, long partId, PartData part) {
@@ -335,14 +225,6 @@ public class EntryController {
         if (part.getLinkedParts() != null && part.getLinkedParts().size() > 0) {
             for (PartData data : part.getLinkedParts()) {
                 Entry linked = dao.getByPartNumber(data.getPartId());
-<<<<<<< HEAD
-                if (linked == null)
-                    continue;
-
-                if (!authorization.canRead(userId, linked)) {
-                    continue;
-                }
-=======
 
                 // check permissions on link
                 if (!authorization.canRead(userId, linked)) {
@@ -351,7 +233,6 @@ public class EntryController {
 
                 if (!canLink(entry, linked))
                     continue;
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
                 entry.getLinkedEntries().add(linked);
             }
@@ -416,82 +297,6 @@ public class EntryController {
         }
     }
 
-    /**
-     * Delete the entry in the database. Schedule an index rebuild.
-     *
-     * @param entryId unique identifier for entry to be deleted
-     * @throws PermissionException if user does not have the appropriate write permissions to delete entry
-     */
-    public void delete(String userId, long entryId) throws PermissionException {
-        Entry entry = dao.get(entryId);
-        boolean schedule = sequenceDAO.hasSequence(entry.getId());
-
-        FolderDAO folderDAO = DAOFactory.getFolderDAO();
-        List<Folder> folders = folderDAO.getFoldersByEntry(entry);
-        if (folders != null) {
-            for (Folder folder : folders) {
-                folder.getContents().remove(entry);
-                FolderDetails details = new FolderDetails(folder.getId(), folder.getName());
-                long size = folderDAO.getFolderSize(folder.getId());
-                details.setCount(size);
-            }
-        }
-        delete(userId, entry, schedule);
-    }
-
-    /**
-     * Experimental. Do not use
-     * Performs a full deletion of the entry, not just marking it as deleted.
-     *
-     * @param entry Entry to be deleted
-     */
-    protected void fullDelete(String userId, Entry entry, boolean schedule) {
-        if (entry == null)
-            return;
-
-        authorization.expectWrite(userId, entry);
-
-        if (schedule) {
-            Sequence sequence = sequenceDAO.getByEntry(entry);
-            if (sequence != null) {
-                sequenceDAO.delete(sequence);
-            }
-        }
-        DAOFactory.getPermissionDAO().clearPermissions(entry);
-        dao.fullDelete(entry);
-        if (schedule) {
-            ApplicationController.scheduleBlastIndexRebuildTask(true);
-        }
-    }
-
-    /**
-     * Delete the entry in the database. Optionally schedule an index rebuild.
-     *
-     * @param entry                entry to deleted
-     * @param scheduleIndexRebuild True if index rebuild is scheduled.
-     */
-    private void delete(String userId, Entry entry, boolean scheduleIndexRebuild) {
-        if (entry == null) {
-            return;
-        }
-
-        authorization.expectWrite(userId, entry);
-
-        if (entry.getVisibility() == Visibility.DELETED.getValue()) {
-            fullDelete(userId, entry, scheduleIndexRebuild);
-            return;
-        }
-
-        entry.setModificationTime(Calendar.getInstance().getTime());
-        entry.setVisibility(Visibility.DELETED.getValue());
-
-        dao.update(entry);
-
-        if (scheduleIndexRebuild) {
-            ApplicationController.scheduleBlastIndexRebuildTask(true);
-        }
-    }
-
     public PartData retrieveEntryTipDetails(String userId, String id) {
         Entry entry = getEntry(id);
         if (entry == null)
@@ -531,8 +336,21 @@ public class EntryController {
         comment.setAccount(account);
         comment.setEntry(entry);
         comment.setBody(newComment.getMessage());
-        comment.setCreationTime(new Date(System.currentTimeMillis()));
+        comment.setCreationTime(new Date());
         comment = commentDAO.create(comment);
+
+        if (newComment.getSamples() != null) {
+            SampleDAO sampleDAO = DAOFactory.getSampleDAO();
+            for (PartSample partSample : newComment.getSamples()) {
+                Sample sample = sampleDAO.get(partSample.getId());
+                if (sample == null)
+                    continue;
+                comment.getSamples().add(sample);
+                sample.getComments().add(comment);
+            }
+        }
+
+        comment = commentDAO.update(comment);
         return comment.toDataTransferObject();
     }
 
@@ -562,14 +380,13 @@ public class EntryController {
         if (entry == null)
             return false;
 
-        Account account = accountController.getByEmail(userId);
         TraceSequenceDAO traceSequenceDAO = DAOFactory.getTraceSequenceDAO();
         TraceSequence traceSequence = traceSequenceDAO.get(traceId);
-        if (traceSequence == null)
+        if (traceSequence == null || !canEdit(userId, traceSequence.getDepositor(), entry))
             return false;
 
         try {
-            new SequenceAnalysisController().removeTraceSequence(account, traceSequence);
+            new SequenceAnalysisController().removeTraceSequence(traceSequence);
         } catch (Exception e) {
             Logger.error(e);
             return false;
@@ -583,9 +400,39 @@ public class EntryController {
             return null;
 
         authorization.expectRead(userId, entry);
-
         List<TraceSequence> sequences = DAOFactory.getTraceSequenceDAO().getByEntry(entry);
-        return ModelToInfoFactory.getSequenceAnalysis(sequences);
+
+        ArrayList<TraceSequenceAnalysis> analysisArrayList = new ArrayList<>();
+        if (sequences == null)
+            return analysisArrayList;
+
+        AccountController accountController = new AccountController();
+
+        for (TraceSequence traceSequence : sequences) {
+            TraceSequenceAnalysis analysis = traceSequence.toDataTransferObject();
+            AccountTransfer accountTransfer = new AccountTransfer();
+
+            String depositor = traceSequence.getDepositor();
+            boolean canEdit = canEdit(userId, depositor, entry);
+            analysis.setCanEdit(canEdit);
+
+            Account account = accountController.getByEmail(traceSequence.getDepositor());
+            if (account != null) {
+                accountTransfer.setFirstName(account.getFirstName());
+                accountTransfer.setLastName(account.getLastName());
+                accountTransfer.setEmail(account.getEmail());
+                accountTransfer.setId(account.getId());
+            }
+
+            analysis.setDepositor(accountTransfer);
+            analysisArrayList.add(analysis);
+        }
+
+        return analysisArrayList;
+    }
+
+    protected boolean canEdit(String userId, String depositor, Entry entry) {
+        return userId.equalsIgnoreCase(depositor) || authorization.canWrite(userId, entry);
     }
 
     public ArrayList<History> getHistory(String userId, long entryId) {
@@ -641,6 +488,14 @@ public class EntryController {
         return statistics;
     }
 
+    /**
+     * Moves the specified list of entries to the deleted folder
+     *
+     * @param userId unique identifier for user making the request. Must have write access privileges on the
+     *               entries in the list
+     * @param list   unique identifiers for entries
+     * @return true or false if operation succeeds on all listed entries or not
+     */
     public boolean moveEntriesToTrash(String userId, ArrayList<PartData> list) {
         List<Entry> toTrash = new LinkedList<>();
         for (PartData data : list) {
@@ -661,7 +516,6 @@ public class EntryController {
             Logger.error(de);
             return false;
         }
-<<<<<<< HEAD
 
         return true;
     }
@@ -674,27 +528,7 @@ public class EntryController {
         authorization.expectWrite(userId, entry);
         Entry linkedEntry = dao.get(linkedPart);
 
-        if (!entry.getLinkedEntries().remove(linkedEntry))
-            return false;
-
-=======
-
-        return true;
-    }
-
-    public boolean removeLink(String userId, long partId, long linkedPart) {
-        Entry entry = dao.get(partId);
-        if (entry == null)
-            return false;
-
-        authorization.expectWrite(userId, entry);
-        Entry linkedEntry = dao.get(linkedPart);
-
-        if (!entry.getLinkedEntries().remove(linkedEntry))
-            return false;
-
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
-        return dao.update(entry) != null;
+        return entry.getLinkedEntries().remove(linkedEntry) && dao.update(entry) != null;
     }
 
     protected Entry getEntry(String id) {
@@ -785,6 +619,8 @@ public class EntryController {
             authorization.expectRead(userId, entry);
 
         PartData partData = ModelToInfoFactory.getInfo(entry);
+        if (partData == null)
+            return null;
         boolean hasSequence = sequenceDAO.hasSequence(entry.getId());
 
         partData.setHasSequence(hasSequence);
@@ -841,10 +677,14 @@ public class EntryController {
             if (!authorization.canRead(userId, parent))
                 continue;
 
+            if (parent.getVisibility() != Visibility.OK.getValue() && !authorization.canWrite(userId, entry))
+                continue;
+
             EntryType type = EntryType.nameToType(parent.getRecordType());
             PartData parentData = new PartData(type);
             parentData.setId(parent.getId());
             parentData.setName(parent.getName());
+            parentData.setVisibility(Visibility.valueToEnum(parent.getVisibility()));
             partData.getParents().add(parentData);
         }
 
@@ -856,7 +696,7 @@ public class EntryController {
         if (entry == null)
             return false;
 
-        authorization.expectWrite(userId, entry);
+        authorization.expectRead(userId, entry);
 
         FileInputStream inputStream;
         try {

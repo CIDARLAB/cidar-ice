@@ -1,22 +1,24 @@
 package org.jbei.ice.lib.entry.sample.model;
 
-import java.util.Date;
-import javax.persistence.*;
-
-import org.jbei.ice.lib.dao.IDataModel;
-import org.jbei.ice.lib.dto.sample.PartSample;
-import org.jbei.ice.lib.entry.model.Entry;
-import org.jbei.ice.lib.entry.model.EntryBooleanPropertiesBridge;
-import org.jbei.ice.lib.models.Storage;
-
 import org.hibernate.annotations.Type;
 import org.hibernate.search.annotations.ContainedIn;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.FieldBridge;
+import org.jbei.ice.lib.dao.IDataModel;
+import org.jbei.ice.lib.dto.sample.PartSample;
+import org.jbei.ice.lib.entry.model.Entry;
+import org.jbei.ice.lib.entry.model.EntryBooleanPropertiesBridge;
+import org.jbei.ice.lib.models.Comment;
+import org.jbei.ice.lib.models.Storage;
+
+import javax.persistence.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Store Sample information.
- * <p/>
+ * <p>
  * Each sample is a uniquely identified (via UUIDv4) object representing a physical sample. Storage
  * locations are handled by {@link org.jbei.ice.lib.models.Storage} objects.
  *
@@ -66,6 +68,9 @@ public class Sample implements IDataModel {
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "location_id")
     private Storage storage;
+
+    @ManyToMany(mappedBy = "samples", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private Set<Comment> comments = new HashSet<>();
 
     public Sample() {
     }
@@ -142,10 +147,16 @@ public class Sample implements IDataModel {
         storage = locationNew;
     }
 
+    public Set<Comment> getComments() {
+        return comments;
+    }
+
     @Override
     public PartSample toDataTransferObject() {
         PartSample sample = new PartSample();
         sample.setLabel(label);
+        if (entry != null)
+            sample.setPartId(entry.getId());
         sample.setCreationTime(creationTime.getTime());
         return sample;
     }

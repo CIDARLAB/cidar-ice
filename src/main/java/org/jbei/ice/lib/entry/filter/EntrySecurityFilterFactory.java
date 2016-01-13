@@ -12,9 +12,6 @@ import org.hibernate.search.annotations.Factory;
 import java.io.IOException;
 import java.util.HashSet;
 
-import java.io.IOException;
-import java.util.HashSet;
-
 /**
  * @author Hector Plahar
  */

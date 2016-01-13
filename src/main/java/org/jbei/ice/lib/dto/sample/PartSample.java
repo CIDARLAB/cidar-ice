@@ -3,6 +3,9 @@ package org.jbei.ice.lib.dto.sample;
 import org.jbei.ice.lib.account.AccountTransfer;
 import org.jbei.ice.lib.dao.IDataTransferModel;
 import org.jbei.ice.lib.dto.StorageLocation;
+import org.jbei.ice.lib.dto.comment.UserComment;
+
+import java.util.ArrayList;
 
 /**
  * Parent class for the different types of samples
@@ -17,6 +20,13 @@ public class PartSample implements IDataTransferModel {
     private long creationTime;
     private boolean inCart;
     private StorageLocation location;
+    private long partId;
+    private boolean canEdit;
+    private ArrayList<UserComment> comments;
+
+    public PartSample() {
+        this.comments = new ArrayList<>();
+    }
 
     public long getId() {
         return id;
@@ -64,5 +74,25 @@ public class PartSample implements IDataTransferModel {
 
     public void setLocation(StorageLocation location) {
         this.location = location;
+    }
+
+    public long getPartId() {
+        return partId;
+    }
+
+    public void setPartId(long partId) {
+        this.partId = partId;
+    }
+
+    public boolean isCanEdit() {
+        return canEdit;
+    }
+
+    public void setCanEdit(boolean canEdit) {
+        this.canEdit = canEdit;
+    }
+
+    public ArrayList<UserComment> getComments() {
+        return comments;
     }
 }

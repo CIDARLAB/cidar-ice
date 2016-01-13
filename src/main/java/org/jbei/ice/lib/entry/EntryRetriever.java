@@ -94,11 +94,7 @@ public class EntryRetriever {
 
         token = token.replaceAll("'", "");
         ArrayList<PartData> dataList = new ArrayList<>();
-<<<<<<< HEAD
-        for (Entry entry : dao.getMatchingEntryPartNumbers(token, limit)) {
-=======
         for (Entry entry : dao.getMatchingEntryPartNumbers(token, limit, null)) {
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             EntryType type = EntryType.nameToType(entry.getRecordType());
             PartData partData = new PartData(type);
             partData.setId(entry.getId());
@@ -186,6 +182,7 @@ public class EntryRetriever {
                 }
 
             case SEARCH:
+                // todo
                 break;
 
             case COLLECTION:
@@ -197,13 +194,11 @@ public class EntryRetriever {
         }
 
         return null;
-
     }
 
     protected List<Long> getCollectionEntries(String userId, String collection, boolean all, EntryType type) {
         List<Long> entries = null;
         Account account = DAOFactory.getAccountDAO().getByEmail(userId);
-
 
         switch (collection.toLowerCase()) {
             case "personal":
@@ -212,9 +207,7 @@ public class EntryRetriever {
                 entries = dao.getOwnerEntryIds(userId, type);
                 break;
             case "shared":
-                GroupController controller = new GroupController();
-                Group everybodyGroup = controller.createOrRetrievePublicGroup();
-                entries = dao.sharedWithUserEntryIds(account, everybodyGroup);
+                entries = dao.sharedWithUserEntryIds(account, account.getGroups());
                 break;
             case "available":
                 entries = dao.getVisibleEntryIds(account.getType() == AccountType.ADMIN);

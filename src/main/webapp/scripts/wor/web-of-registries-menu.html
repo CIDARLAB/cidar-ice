@@ -1,24 +1,3 @@
-<<<<<<< HEAD
-<table cellspacing="0" cellpadding="0" width="224px"
-       ng-if="settings['JOIN_WEB_OF_REGISTRIES']&&wor&&wor.partners.length">
-    <tr>
-        <td class="collections_header">
-            Web of Registries
-        </td>
-    </tr>
-    <tr ng-repeat="partner in wor.partners">
-        <td ng-class="{collection_user_menu_row_selected:partner.id==selectedPartner}">
-            <div class="collection-menu" ng-click="selectPartner(partner)">
-                <i class="fa color-888"
-                   ng-class="{'fa-caret-right':selectedPartner!=partner.id, 'fa-caret-down':selectedPartner==partner.id}"></i>
-                <span class="collection_user_menu">{{partner.name}}</span>
-            </div>
-
-            <ice.menu.wor.details ng-show="selectedPartner==partner.id"></ice.menu.wor.details>
-        </td>
-    </tr>
-</table>
-=======
 <div ng-if="settings['JOIN_WEB_OF_REGISTRIES']&&wor&&wor.partners.length">
     <div class="collections_header">Web of Registries</div>
 
@@ -38,4 +17,3 @@
         </div>
     </div>
 </div>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c

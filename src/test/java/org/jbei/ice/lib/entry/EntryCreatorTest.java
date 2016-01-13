@@ -1,32 +1,17 @@
 package org.jbei.ice.lib.entry;
 
 import org.jbei.ice.lib.AccountCreator;
-<<<<<<< HEAD
-import org.jbei.ice.lib.TestEntryCreator;
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.jbei.ice.lib.account.model.Account;
 import org.jbei.ice.lib.dao.DAOFactory;
 import org.jbei.ice.lib.dao.hibernate.HibernateUtil;
 import org.jbei.ice.lib.dto.entry.*;
 import org.jbei.ice.lib.entry.model.ArabidopsisSeed;
-<<<<<<< HEAD
-import org.jbei.ice.lib.entry.model.Entry;
 import org.jbei.ice.lib.entry.model.Strain;
-import org.jbei.ice.lib.shared.ColumnField;
-=======
-import org.jbei.ice.lib.entry.model.Strain;
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-<<<<<<< HEAD
-import java.util.List;
-
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 /**
  * @author Hector Plahar
  */
@@ -42,26 +27,6 @@ public class EntryCreatorTest {
     }
 
     @Test
-<<<<<<< HEAD
-    public void testReceivedTransferredEntry() throws Exception {
-        Account account = AccountCreator.createTestAccount("testReceivedTransferredEntry", false);
-        Strain strain = TestEntryCreator.createTestStrain(account);
-        PartData data = strain.toDataTransferObject();
-        data.setRecordId(account.getEmail()); // faking record id since this is stored on "this instance"
-        PartData createdData = creator.receiveTransferredEntry(data);
-        Assert.assertNotNull(createdData);
-        // transferring with same record id. should return null
-        Assert.assertNull(creator.receiveTransferredEntry(data));
-
-        // retrieve list of transferred
-        List<Entry> entries = DAOFactory.getEntryDAO().getByVisibility(null, Visibility.TRANSFERRED, ColumnField.CREATED, false, 0, 1000);
-        Assert.assertNotNull(entries);
-        Assert.assertTrue(entries.size() == 1);
-    }
-
-    @Test
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     public void testCreatePart() throws Exception {
         Account account = AccountCreator.createTestAccount("testCreatePart", false);
         Assert.assertNotNull(account);

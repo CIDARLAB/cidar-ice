@@ -16,10 +16,7 @@ import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.query.dsl.TermContext;
 import org.jbei.ice.lib.account.AccountController;
 import org.jbei.ice.lib.common.logging.Logger;
-<<<<<<< HEAD
-=======
 import org.jbei.ice.lib.dao.DAOFactory;
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.jbei.ice.lib.dao.hibernate.HibernateUtil;
 import org.jbei.ice.lib.dto.entry.EntryType;
 import org.jbei.ice.lib.dto.entry.PartData;
@@ -71,7 +68,7 @@ public class HibernateSearch {
                 Query query;
 
                 if (occur == BooleanClause.Occur.MUST)
-                    query = qb.phrase().onField(field).sentence(term).createQuery();
+                    query = qb.phrase().withSlop(3).onField(field).sentence(term).createQuery();
                 else if (term.contains("*")) {
                     if (!field.equals("name"))
                         continue;
@@ -100,7 +97,7 @@ public class HibernateSearch {
             // bio-safety level
             if (option != null) {
                 TermContext levelContext = qb.keyword();
-                org.apache.lucene.search.Query biosafetyQuery =
+                Query biosafetyQuery =
                         levelContext.onField("bioSafetyLevel").ignoreFieldBridge()
                                 .matching(option.getValue()).createQuery();
                 booleanQuery.add(biosafetyQuery, BooleanClause.Occur.MUST);
@@ -144,8 +141,8 @@ public class HibernateSearch {
         BioSafetyOption option = searchQuery.getBioSafetyOption();
         if (option != null) {
             TermContext bslContext = qb.keyword();
-            org.apache.lucene.search.Query biosafetyQuery =
-                    bslContext.onField("bioSafetyLevel").ignoreFieldBridge().matching(option.getValue()).createQuery();
+            Query biosafetyQuery =
+                    bslContext.onField("bioSafetyLevel").ignoreFieldBridge().matching(option.getIntValue()).createQuery();
             booleanQuery.add(biosafetyQuery, BooleanClause.Occur.MUST);
         }
 
@@ -226,12 +223,9 @@ public class HibernateSearch {
                 DocsEnum docs;
                 for (String id : blastResults.keySet()) {
                     docs = context.reader().termDocsEnum(new Term("id", id));
-<<<<<<< HEAD
-=======
                     if (docs == null)
                         continue;
 
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                     int doc;
                     while ((doc = docs.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
                         bitSet.set(doc);
@@ -287,28 +281,15 @@ public class HibernateSearch {
     public SearchResults executeSearch(String userId, HashMap<String, BooleanClause.Occur> terms,
                                        SearchQuery searchQuery, HashMap<String, Float> userBoost,
                                        HashMap<String, SearchResult> blastResults) {
-        // types for which we are searching. default is all
-        ArrayList<EntryType> entryTypes = searchQuery.getEntryTypes();
-        if (entryTypes == null || entryTypes.isEmpty()) {
-            entryTypes = new ArrayList<>();
-            entryTypes.addAll(Arrays.asList(EntryType.values()));
-        }
-
         Session session = HibernateUtil.getSessionFactory().getCurrentSession();
         int resultCount;
         FullTextSession fullTextSession = Search.getFullTextSession(session);
         BooleanQuery booleanQuery = new BooleanQuery();
 
         // get classes for search
-        Class<?>[] classes = new Class<?>[EntryType.values().length];
         HashSet<String> fields = new HashSet<>();
-        fields.addAll(SearchFieldFactory.getCommonFields());
-
-        for (int i = 0; i < entryTypes.size(); i += 1) {
-            EntryType type = entryTypes.get(i);
-            classes[i] = SearchFieldFactory.entryClass(type);
-            fields.addAll(SearchFieldFactory.entryFields(type));
-        }
+        fields.addAll(SearchFieldFactory.entryFields(searchQuery.getEntryTypes()));
+        Class<?>[] classes = SearchFieldFactory.classesForTypes(searchQuery.getEntryTypes());
 
         // generate queries for terms filtering stop words
         for (Map.Entry<String, BooleanClause.Occur> entry : terms.entrySet()) {
@@ -332,8 +313,8 @@ public class HibernateSearch {
         FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(booleanQuery, classes);
 
         // get max score
-        fullTextQuery.setFirstResult(0); //start from the "start"th element
-        fullTextQuery.setMaxResults(1);  //return count elements
+        fullTextQuery.setFirstResult(0);
+        fullTextQuery.setMaxResults(1);
         fullTextQuery.setProjection(FullTextQuery.SCORE);
         List result = fullTextQuery.list();
         float maxScore = -1f;
@@ -380,11 +361,7 @@ public class HibernateSearch {
                 PartData info = ModelToInfoFactory.createTableViewData(userId, entry, true);
                 if (info == null)
                     continue;
-                // for bulk edit
-<<<<<<< HEAD
-=======
                 info.setViewCount(DAOFactory.getAuditDAO().getHistoryCount(entry));
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 searchResult.setEntryInfo(info);
             }
 
@@ -410,6 +387,9 @@ public class HibernateSearch {
             case TYPE:
                 return new Sort(new SortField("recordType", SortField.Type.STRING, asc));
 
+            case PART_ID:
+                return new Sort(new SortField("partNumber", SortField.Type.STRING, asc));
+
             case CREATED:
                 return new Sort(new SortField("creationTime", SortField.Type.STRING, asc));
         }
@@ -432,12 +412,9 @@ public class HibernateSearch {
                 DocsEnum docs;
                 for (String id : blastResults.keySet()) {
                     docs = context.reader().termDocsEnum(new Term("id", id));
-<<<<<<< HEAD
-=======
                     if (docs == null)
                         continue;
 
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                     int doc;
                     while ((doc = docs.nextDoc()) != DocsEnum.NO_MORE_DOCS) {
                         bitSet.set(doc);
@@ -452,12 +429,8 @@ public class HibernateSearch {
 
     /**
      * Enables the security filter if the account does not have administrative privileges
-<<<<<<< HEAD
-     *  @param userId        identifier for account which is checked for administrative privs
-=======
      *
      * @param userId        identifier for account which is checked for administrative privs
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
      * @param fullTextQuery search fulltextquery for which filter is enabled
      */
     protected FullTextQuery checkEnableSecurityFilter(String userId, FullTextQuery fullTextQuery) {

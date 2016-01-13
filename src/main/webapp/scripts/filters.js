@@ -8,6 +8,7 @@ iceFilters.filter('capitalize', function () {
             return '';
 
         var res = '';
+        input = input.replace(new RegExp("_", 'g'), " ");
         var inputArr = input.split(" ");
         for (var i = 0; i < inputArr.length; i += 1) {
             if (i > 0)
@@ -20,6 +21,9 @@ iceFilters.filter('capitalize', function () {
 
 iceFilters.filter('truncate', function () {
     return function (text, length, end) {
+        if (!text)
+            return "";
+
         if (isNaN(length))
             length = 10;
 

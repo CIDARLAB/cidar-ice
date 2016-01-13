@@ -21,14 +21,11 @@ public class HibernateUtil {
     // singleton
     private HibernateUtil() {
     }
-<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/HibernateUtil.java
-=======
 
     private static String BASE_FILE = "hibernate.cfg.xml";
     private static String MOCK_FILE = "mock.cfg.xml";
     private static String AWS_FILE = "aws.cfg.xml";
     private static String DEFAULT_FILE = "default.cfg.xml";
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/HibernateUtil.java
 
     /**
      * Open a new {@link Session} from the sessionFactory.
@@ -80,10 +77,6 @@ public class HibernateUtil {
                 if (type == Type.MOCK) {
                     configuration.configure(MOCK_FILE);
                 } else {
-<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/HibernateUtil.java
-                    // Create the SessionFactory from hibernate.cfg.xml
-                    configuration = new Configuration().configure("hibernate.cfg.xml");
-=======
                     String environment = System.getProperty("environment");
 
                     if (environment != null && environment.equals("aws")){
@@ -91,7 +84,6 @@ public class HibernateUtil {
                     }else{
                         configuration.configure(DEFAULT_FILE);
                     }
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/HibernateUtil.java
                 }
 
                 ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder().applySettings(

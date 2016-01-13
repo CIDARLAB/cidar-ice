@@ -4,14 +4,8 @@ import org.jbei.ice.lib.dao.IDataModel;
 import org.jbei.ice.lib.dto.web.RegistryPartner;
 import org.jbei.ice.lib.dto.web.RemotePartnerStatus;
 
-<<<<<<< HEAD
-import org.jbei.ice.lib.dao.IDataModel;
-import org.jbei.ice.lib.dto.web.RegistryPartner;
-import org.jbei.ice.lib.dto.web.RemotePartnerStatus;
-=======
 import javax.persistence.*;
 import java.util.Date;
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
 /**
  * Represents a remote entity that this ice instance knows about
@@ -158,8 +152,6 @@ public class RemotePartner implements IDataModel {
         this.authenticationToken = authenticationToken;
     }
 
-<<<<<<< HEAD
-=======
     public String getSalt() {
         return salt;
     }
@@ -168,7 +160,6 @@ public class RemotePartner implements IDataModel {
         this.salt = salt;
     }
 
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     @Override
     public RegistryPartner toDataTransferObject() {
         RegistryPartner registryPartner = new RegistryPartner();
@@ -183,10 +174,6 @@ public class RemotePartner implements IDataModel {
                                           ? RemotePartnerStatus.APPROVED.name() : getPartnerStatus().name());
         registryPartner.setSent(getSent());
         registryPartner.setFetched(getFetched());
-<<<<<<< HEAD
-        registryPartner.setApiKey(getApiKey());
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         return registryPartner;
     }
 }

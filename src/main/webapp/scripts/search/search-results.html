@@ -5,7 +5,7 @@
                 <strong style="color: #888;">
                     <i class="fa fa-fw fa-search" style="color: #444"></i> LOCAL RESULTS
                 </strong>
-                <img ng-if="loadingSearchResults" src="/img/loader-mini.gif">
+                <img ng-if="loadingSearchResults" src="img/loader-mini.gif">
 
                 <small class="edit_icon font-70em pad_left" ng-click="search(true)">
                     <i style="color: #555" class="fa fa-globe"></i> Search other registries
@@ -13,14 +13,10 @@
             </h4>
 
             <h4 ng-if="isWebSearch()">
-<<<<<<< HEAD
-                <strong style="color: #888;">
-=======
                 <strong style="color: #888">
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                     <i class="fa fa-fw fa-globe" style="color: #444"></i> WEB OF REGISTRIES RESULTS
                 </strong>
-                <img ng-if="loadingSearchResults" src="/img/loader-mini.gif">
+                <img ng-if="loadingSearchResults" src="img/loader-mini.gif">
 
                 <small class="edit_icon font-70em pad_left" ng-click="search()">
                     <i style="color: #555" class="fa fa-search"></i> Search locally
@@ -31,35 +27,12 @@
 
     <div class="row" ng-if="isWebSearch()">
         <!--non-blast results remote search results-->
-<<<<<<< HEAD
-        <table cellspacing="0" class="table table-bordered table-responsive table-hover font-95em"
-=======
         <table cellspacing="0"
                class="table table-responsive table-hover font-95em table-condensed table-striped table-border-bottom"
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                ng-if="!searchFilters.blastQuery || !searchFilters.blastQuery.sequence"
                ng-class="{'opacity_4':loadingSearchResults}">
             <thead>
             <tr ng-show="searchResults.results.length>0">
-<<<<<<< HEAD
-                <th style="">Relevance</th>
-                <th style="">Type</th>
-                <th style=" width: 110px">Part ID</th>
-                <th style=" width:230px">Name</th>
-                <th>Summary</th>
-                <th style=" width:230px">Owner</th>
-                <th style=" width:230px">Registry</th>
-                <th style=" width:10px">
-                    <i class="fa fa-paperclip fa-fw" style="font-size: 14px; "></i></th>
-                <th style="width:10px">
-                    <i class="fa fa-flask fa-fw" style="font-size: 14px; "></i>
-                </th>
-                <th style="width:30px; text-align:center">
-                    <img src="img/dna.svg" height="16px" alt="has dna"/>
-                </th>
-                <th style="width:160px; white-space:nowrap">
-                    Created
-=======
                 <th>
                     <span style="font-size: 12px;">RELEVANCE</span>
                 </th>
@@ -94,16 +67,15 @@
                 </th>
                 <th ng-click="sortResults('created')" class="cursor_pointer" style="width: 120px">
                     <span style="font-size: 11px; text-transform: uppercase">Created</span>
-                    <i ng-show="searchFilters.parameters.sortField=='CREATED'" style="font-size: 14px"
+                    <i ng-show="searchFilters.parameters.sortField==='CREATED'" style="font-size: 14px"
                        class="fa opacity_4"
                        ng-class="{'fa-angle-down':searchFilters.parameters.sortAscending==false, 'fa-angle-up':searchFilters.parameters.sortAscending==true}"></i>
                     <i ng-if="searchFilters.parameters.sortField!=='CREATED'" class="sortable fa fa-angle-down"></i>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 </th>
             </tr>
 
             <tr data-ng-show='!searchResults'>
-                <td colspan="11"><img src="/img/loader-mini.gif"> Loading...</td>
+                <td colspan="11"><img src="img/loader-mini.gif"> Loading...</td>
             </tr>
             <tr data-ng-show="searchResults.results.length == 0">
                 <td colspan="11">No results found for your query</td>
@@ -112,26 +84,6 @@
             <tbody>
             <tr data-ng-repeat="result in searchResults.results">
                 <td ng-init="val=result.score/result.maxScore*100">
-<<<<<<< HEAD
-                    <progressbar animate='false' value='val' type='{{getType(val)}}'
-                                 style="margin-bottom: 0"></progressbar>
-                </td>
-                <td>{{result.entryInfo.type | capitalize}}</td>
-                <td><a ng-href='/web/{{result.partner.id}}/entry/{{result.entryInfo.id}}'
-                       class="cell_mouseover form-group"
-                       popover-trigger="mouseenter" ng-mouseover="remoteTooltipDetails(result)"
-                       popover-template="/scripts/search/tooltip.html" popover-title="{{result.entryInfo.partId}}"
-                       popover-placement="right">{{result.entryInfo.partId}}</a>
-                </td>
-                <td>
-                    <div title="{{result.entryInfo.name}}" class="ellipsis" style="width: 150px">
-                        {{result.entryInfo.name}}
-                    </div>
-                </td>
-                <td>
-                    <div title="{{result.entryInfo.shortDescription}}"
-                         style="width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-=======
                     <div style="width: 75px">
                         <progressbar animate='false' value='val' type='{{getType(val)}}'
                                      style="margin-bottom: 0"></progressbar>
@@ -140,10 +92,10 @@
                 <td style="opacity:0.7; font-weight: bold; font-size: 0.85em; text-shadow: 0 1px 0 #fff">
                     {{result.entryInfo.type | capitalize}}
                 </td>
-                <td><a ng-href='/web/{{result.partner.id}}/entry/{{result.entryInfo.id}}'
+                <td><a ng-href="web/{{result.partner.id}}/entry/{{result.entryInfo.id}}"
                        class="cell_mouseover form-group"
                        popover-trigger="mouseenter" ng-mouseover="remoteTooltipDetails(result)"
-                       popover-template="/scripts/search/tooltip.html"
+                       popover-template="searchResultPopupTemplate"
                        popover-placement="right">{{result.entryInfo.partId}}</a>
                 </td>
                 <td>
@@ -152,34 +104,15 @@
                     </div>
                     <div title="{{result.entryInfo.shortDescription}}" class="small"
                          style="opacity: 0.6; width: 350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                         {{result.entryInfo.shortDescription}}
                     </div>
                 </td>
                 <td>
-<<<<<<< HEAD
-                    <div style="width:150px">{{result.entryInfo.owner}}</div>
-                </td>
-                <td class="no_wrap"><a ng-href="https://{{result.partner.url}}/entry/{{result.entryInfo.id}}"
-                                       target="_blank">{{result.partner.name}}</a></td>
-                <td><i ng-show="result.entryInfo.hasAttachment" class="fa fa-paperclip fa-fw"
-                       style="color: #555; font-size: 14px;"></i></td>
-                <td><i ng-show="result.entryInfo.hasSample" class="fa fa-flask fa-fw"
-                       style="color: #555; font-size: 14px;"></i></td>
-                <td style="width:30px; text-align:center">
-                    <img ng-show="result.entryInfo.hasSequence" src="img/dna.svg" height="16px" alt="has dna"/>
-                </td>
-                <td style="width:160px; white-space:nowrap">{{result.entryInfo.creationTime | date:'MMM d, yyyy'}}</td>
-=======
                     <div>{{result.entryInfo.owner}}</div>
                 </td>
                 <td class="no_wrap"><a ng-href="https://{{result.partner.url}}/entry/{{result.entryInfo.id}}"
                                        target="_blank">{{result.partner.name}}</a></td>
                 <td style="vertical-align: middle">
-                    <!--<i ng-show="result.entryInfo.hasAttachment" class="fa fa-paperclip fa-fw"-->
-                    <!--style="color: #555; font-size: 14px;"></i>-->
-                    <!--<i ng-show="!result.entryInfo.hasAttachment" class="fa fa-square fa-fw"-->
-                    <!--style="opacity: 0; font-size: 14px;"></i>-->
                     <i ng-show="result.entryInfo.hasSample" class="fa fa-flask fa-fw"
                        style="color: #555; font-size: 14px;"></i>
                     <i ng-show="!result.entryInfo.hasSample" class="fa fa-square fa-fw"
@@ -187,34 +120,17 @@
                     <img ng-show="result.entryInfo.hasSequence" src="img/dna.svg" width="15px"/>
                 </td>
                 <td style="white-space:nowrap">{{result.entryInfo.creationTime | date:'MMM d, yyyy'}}</td>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             </tr>
             </tbody>
         </table>
 
         <!-- remote blast results -->
-<<<<<<< HEAD
-        <table cellspacing="0" class="table table-bordered table-responsive table-hover font-95em"
-=======
         <table cellspacing="0"
                class="table table-bordered table-condensed table-border-bottom table-responsive table-hover font-95em"
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                ng-if="searchFilters.blastQuery && searchFilters.blastQuery.sequence"
                ng-class="{'opacity_4':loadingSearchResults}">
             <thead>
             <tr data-ng-show="searchResults.results.length>0">
-<<<<<<< HEAD
-                <th style="width: 90px">Type</th>
-                <th style="width: 90px">Part ID</th>
-                <th style="width: 150px">Name</th>
-                <th>Summary</th>
-                <th style=" width:230px">Registry</th>
-                <th style="width: 160px">Alignment</th>
-                <th style="width: 80px">E-Value</th>
-                <!--<th style="width: 160px">Hits Alignment</th>-->
-            </tr>
-
-=======
                 <th style="width: 12px">
 
                     <!--<i class="fa cursor_pointer" ng-class="{'fa-square-o':!allSelected, 'fa-check-square-o': allSelected}"-->
@@ -250,7 +166,6 @@
                 <th style="width: 210px;"><span style="font-size: 12px; text-transform: uppercase">Alignment</span></th>
                 <th style="width: 80px;"><span style="font-size: 12px; text-transform: uppercase">E-Value</span></th>
             </tr>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             <tr data-ng-show='!searchResults'>
                 <td colspan="11"><i class="fa fa-gear fa-spin"></i> Loading...</td>
             </tr>
@@ -260,54 +175,13 @@
             </thead>
             <tbody>
             <tr data-ng-repeat-start="result in searchResults.results">
-<<<<<<< HEAD
-                <!--<td>-->
-                <!--<input type="checkbox" ng-click="select(result.entryInfo)"/>-->
-                <!--&lt;!&ndash;<i class="fa fa-fw"&ndash;&gt;-->
-                <!--&lt;!&ndash;ng-class="checkSelectionStyle($index)"&ndash;&gt;-->
-                <!--&lt;!&ndash;ng-click="setSelected($index, 1)" style="color: #999; font-size: 14px;"></i>&ndash;&gt;-->
-                <!--</td>-->
-                <td>{{result.entryInfo.type | capitalize}}</td>
-                <td><a ng-href='/web/{{result.partner.id}}/entry/{{result.entryInfo.id}}'
-                       class="cell_mouseover form-group"
-                       popover-trigger="mouseenter" ng-mouseover="remoteTooltipDetails(result)"
-                       popover-template="/scripts/search/tooltip.html" popover-title="{{result.entryInfo.partId}}"
-                       popover-placement="right">{{result.entryInfo.partId}}</a>
-                </td>
-                <td>
-                    <div title="{{result.entryInfo.name}}" class="ellipsis" style="width: 150px">
-                        {{result.entryInfo.name}}
-                    </div>
-                </td>
-                <td title="{{result.entryInfo.shortDescription}}">
-                    <div style="width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">
-                        {{result.entryInfo.shortDescription}}
-                    </div>
-                </td>
-                <td class="no_wrap"><a ng-href="https://{{result.partner.url}}/entry/{{result.entryInfo.id}}"
-                                       target="_blank">{{result.partner.name}}</a></td>
-                <td>
-                    <div>{{result.alignment}}</div>
-                </td>
-                <td>{{result.eValue}}</td>
-                <!--<td class="cursor_pointer" ng-click="showDetails=!showDetails">-->
-                <!--<table cellpadding=0 cellspacing=0 ng-init="stripes=alignmentGraph(result)">-->
-                <!--<tr>-->
-                <!--<td ng-repeat="stripe in stripes">-->
-                <!--<hr ng-style="{ 'width': stripe + 'px' }"-->
-                <!--style="background-color: #ffff00; border: 0; height: 10px">-->
-                <!--</td>-->
-                <!--</tr>-->
-                <!--</table>-->
-                <!--</td>-->
-=======
                 <td style="opacity:0.7; font-weight: bold; font-size: 0.85em; text-shadow: 0 1px 0 #fff">
                     {{result.entryInfo.type | uppercase}}
                 </td>
-                <td><a ng-href='/web/{{result.partner.id}}/entry/{{result.entryInfo.id}}'
+                <td><a ng-href="web/{{result.partner.id}}/entry/{{result.entryInfo.id}}"
                        class="cell_mouseover form-group"
                        popover-trigger="mouseenter" ng-mouseover="remoteTooltipDetails(result)"
-                       popover-template="/scripts/search/tooltip.html"
+                       popover-template="searchResultPopupTemplate"
                        popover-placement="right">{{result.entryInfo.partId}}</a>
                 </td>
                 <td>
@@ -328,7 +202,6 @@
                     <div style="width:200px;">{{result.alignment}}</div>
                 </td>
                 <td>{{result.eValue}}</td>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             </tr>
             <tr data-ng-repeat-end ng-if="showDetails">
                 <td colspan="8">
@@ -340,37 +213,14 @@
     </div>
 
     <div class="row" ng-if="!isWebSearch()">
-<<<<<<< HEAD
-        <table cellspacing="0" class="table table-bordered table-responsive table-hover font-95em"
-=======
         <!--local blast search results-->
         <table cellspacing="0"
                class="table table-responsive table-hover table-condensed table-border-bottom table-striped font-95em"
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                ng-if="searchFilters.blastQuery && searchFilters.blastQuery.sequence"
                ng-class="{'opacity_4':loadingSearchResults}">
             <thead>
             <tr data-ng-show="searchResults.results.length>0">
                 <th style="width: 12px">
-<<<<<<< HEAD
-
-                    <!--<i class="fa cursor_pointer" ng-class="{'fa-square-o':!allSelected, 'fa-check-square-o': allSelected}"-->
-                    <!--style="color: #999; font-size: 14px;" ng-click="selectAll()"></i>-->
-
-                    <!--<input type="checkbox" ng-model="allSelected"/>-->
-                    <!--<sup style="font-size: 9px; font-weight: normal"-->
-                    <!--ng-show="selection.length>0">{{selection.length}}</sup>-->
-                </th>
-                <th style="width: 90px">Type</th>
-                <th style="width: 90px">Part ID</th>
-                <th style="width: 150px">Name</th>
-                <th style="width: 400px">Summary</th>
-                <th style="width: 200px"><i class="fa opacity_4 fa-sort-down"></i> Alignment</th>
-                <th style="width: 80px">E-Value</th>
-                <!--<th style="width: 160px">Hits Alignment</th>-->
-            </tr>
-
-=======
                 </th>
                 <th ng-click="sortResults('TYPE')" class="cursor_pointer">
                     <span style="font-size: 12px; text-transform: uppercase">TYPE</span>
@@ -398,7 +248,6 @@
                 <th style="width: 210px;"><span style="font-size: 12px; text-transform: uppercase">Alignment</span></th>
                 <th style="width: 80px;"><span style="font-size: 12px; text-transform: uppercase">E-Value</span></th>
             </tr>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             <tr data-ng-show='!searchResults'>
                 <td colspan="11"><i class="fa fa-gear fa-spin"></i> Loading...</td>
             </tr>
@@ -407,17 +256,6 @@
             </tr>
             </thead>
             <tbody>
-<<<<<<< HEAD
-            <tr data-ng-repeat-start="result in searchResults.results">
-                <td>
-                    <input type="checkbox" ng-click="select(result.entryInfo)"/>
-                    <!--<i class="fa fa-fw"-->
-                    <!--ng-class="checkSelectionStyle($index)"-->
-                    <!--ng-click="setSelected($index, 1)" style="color: #999; font-size: 14px;"></i>-->
-                </td>
-                <td>{{result.entryInfo.type | capitalize}}</td>
-                <td><a ng-href='/entry/{{result.entryInfo.id}}'
-=======
             <tr ng-repeat-start="result in searchResults.results">
                 <td width="40px">
                     <i class="fa fa-fw cursor_default" style="font-size: 15px"
@@ -428,23 +266,11 @@
                     {{result.entryInfo.type | uppercase}}
                 </td>
                 <td><a ng-click="goToEntryDetails(result.entryInfo, $index)" class="cell_mouseover form-group"
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                        popover-trigger="mouseenter" ng-mouseover="tooltipDetails(result.entryInfo)"
-                       popover-template="/scripts/search/tooltip.html"
+                       popover-template="searchResultPopupTemplate"
                        popover-placement="right">{{result.entryInfo.partId}}</a>
                 </td>
                 <td>
-<<<<<<< HEAD
-                    <div title="{{result.entryInfo.name}}" class="ellipsis" style="width: 150px">
-                        {{result.entryInfo.name}}
-                    </div>
-                </td>
-                <td title="{{result.entryInfo.shortDescription}}">
-                    <div style="width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">
-                        {{result.entryInfo.shortDescription}}
-                    </div>
-                </td>
-=======
                     <div title="{{result.entryInfo.name}}" class="ellipsis" style="width: 350px">
                         {{result.entryInfo.name}}
                     </div>
@@ -454,28 +280,12 @@
                     </div>
                 </td>
                 <td></td>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 <td>
                     <div style="width:200px;">{{result.alignment}}</div>
                 </td>
                 <td>{{result.eValue}}</td>
-<<<<<<< HEAD
-                <!--<td class="cursor_pointer" ng-click="showDetails=!showDetails">-->
-                <!--<table cellpadding=0 cellspacing=0 ng-init="stripes=alignmentGraph(result)">-->
-                <!--<tr>-->
-                <!--<td ng-repeat="stripe in stripes">-->
-                <!--<hr ng-style="{ 'width': stripe + 'px' }"-->
-                <!--style="background-color: #ffff00; border: 0; height: 10px">-->
-                <!--</td>-->
-                <!--</tr>-->
-                <!--</table>-->
-                <!--</td>-->
-            </tr>
-            <tr data-ng-repeat-end ng-if="showDetails">
-=======
             </tr>
             <tr ng-repeat-end ng-if="showDetails">
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 <td colspan="8">
                     <pre>{{result.matchDetails | json}}</pre>
                 </td>
@@ -484,60 +294,19 @@
         </table>
 
         <!--local non-blast search results-->
-<<<<<<< HEAD
-        <table cellspacing="0" class="table table-bordered table-responsive table-hover font-95em"
-=======
         <table cellspacing="0"
                class="table table-responsive table-hover table-condensed table-striped font-95em table-border-bottom"
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                ng-if="!searchFilters.blastQuery || !searchFilters.blastQuery.sequence"
                ng-class="{'opacity_4':loadingSearchResults}">
             <thead>
             <tr data-ng-show='!searchResults'>
-                <td colspan="11"><img src="/img/loader-mini.gif"> Loading...</td>
+                <td colspan="11"><img src="img/loader-mini.gif"> Loading...</td>
             </tr>
             <tr data-ng-show="searchResults.results.length == 0">
                 <td colspan="11">No results found for your query</td>
             </tr>
             <tr ng-show="searchResults.results.length>0">
                 <th>
-<<<<<<< HEAD
-                    <!--<input type="checkbox" ng-model="allSelected"/>-->
-                    <!--<sup style="font-size: 9px; font-weight: normal"-->
-                    <!--ng-show="selection.length>0">{{selection.length}}</sup>-->
-
-                    <!--<i class="fa" ng-class="{'fa-square-o':!allSelected, 'fa-check-square-o': allSelected}"-->
-                    <!--style="color: #999; font-size: 14px;" ng-click="selectAll()"></i>-->
-                    <!--<i class="fa fa-fw fa-minus-square"></i>-->
-                </th>
-                <th style="">
-                    Relevance
-                </th>
-                <th style="">
-                    Type
-                </th>
-                <th style="width: 110px">
-                    Part ID
-                </th>
-                <th style="width:230px">
-                    Name
-                </th>
-                <th style="">
-                    Summary
-                </th>
-                <th style="width:230px">
-                    Owner
-                </th>
-                <th style="width:30px">
-                    <i class="fa fa-paperclip fa-fw" style="font-size: 14px;"></i></th>
-                <th style="width:30px">
-                    <i class="fa fa-flask fa-fw" style="font-size: 14px;"></i>
-                </th>
-                <th style="width:30px; text-align:center">
-                    <img src="img/dna.svg" height="16px" alt="has dna"/></th>
-                <th style="width:160px; white-space:nowrap">
-                    Created
-=======
                 </th>
                 <th>
                     <span style="font-size: 12px; text-transform: uppercase">RELEVANCE</span>
@@ -546,7 +315,7 @@
                     <!--ng-class="{'fa-angle-down':searchFilters.parameters.sortAscending==false, 'fa-angle-up':searchFilters.parameters.sortAscending==true}"></i>-->
                 </th>
                 <th ng-click="sortResults('TYPE')" class="cursor_pointer">
-                    <span style="font-size: 12px; text-transform: uppercase">TYPE</span>
+                    <span style="font-size: 12px">TYPE</span>
                     <i ng-if="searchFilters.parameters.sortField!=='TYPE'" class="sortable fa fa-angle-down"></i>
                     <i ng-show="searchFilters.parameters.sortField=='TYPE'" style="font-size: 14px;"
                        class="fa opacity_4"
@@ -576,27 +345,15 @@
                 </th>
                 <th ng-click="sortResults('created')" class="cursor_pointer">
                     <span style="font-size: 11px; text-transform: uppercase">Created</span>
-                    <i ng-show="searchFilters.parameters.sortField=='created'" style="font-size: 14px"
+                    <i ng-show="searchFilters.parameters.sortField==='CREATED'" style="font-size: 14px"
                        class="fa opacity_4"
-                       ng-class="{'fa-angle-down':searchFilters.parameters.sortAscending==false, 'fa-angle-up':searchFilters.parameters.sortAscending==true}"></i>
-                    <i ng-if="searchFilters.parameters.sortField!=='created'" class="sortable fa fa-angle-down"></i>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
+                       ng-class="{'fa-angle-down':!searchFilters.parameters.sortAscending, 'fa-angle-up':searchFilters.parameters.sortAscending}"></i>
+                    <i ng-if="searchFilters.parameters.sortField!=='CREATED'" class="sortable fa fa-angle-down"></i>
                 </th>
             </tr>
             </thead>
             <tbody>
             <tr data-ng-repeat="result in searchResults.results">
-<<<<<<< HEAD
-                <td width="10px">
-                    <i class="fa fa-fw color-888 cursor_default" ng-click="selectSearchResult(result.entryInfo)"
-                       ng-class="{'fa-square-o':!searchEntrySelected(result.entryInfo), 'fa-check-square-o':searchEntrySelected(result.entryInfo)}"></i>
-                </td>
-                <td ng-init="val=result.score/result.maxScore*100">
-                    <progressbar animate='false' value='val' type='{{getType(val)}}'
-                                 style="margin-bottom: 0"></progressbar>
-                </td>
-                <td>{{result.entryInfo.type | capitalize}}</td>
-=======
                 <td width="40px">
                     <i class="fa fa-fw cursor_default" style="font-size: 15px"
                        ng-click="selectSearchResult(result.entryInfo)"
@@ -611,36 +368,12 @@
                 <td style="opacity:0.7; font-weight: bold; font-size: 0.85em; text-shadow: 0 1px 0 #fff">
                     {{result.entryInfo.type | uppercase}}
                 </td>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 <td><a ng-click="goToEntryDetails(result.entryInfo, $index)" class="cell_mouseover form-group"
                        popover-trigger="mouseenter" ng-mouseover="tooltipDetails(result.entryInfo)"
-                       popover-template="/scripts/search/tooltip.html"
+                       popover-template="searchResultPopupTemplate"
                        popover-placement="right">{{result.entryInfo.partId}}</a>
                 </td>
                 <td>
-<<<<<<< HEAD
-                    <div title="{{result.entryInfo.name}}" class="ellipsis" style="width: 150px">
-                        {{result.entryInfo.name}}
-                    </div>
-                </td>
-                <td>
-                    <div title="{{result.entryInfo.shortDescription}}"
-                         style="width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        {{result.entryInfo.shortDescription}}
-                    </div>
-                </td>
-                <td>
-                    <div style="width:150px"><a
-                            ng-href="/profile/{{result.entryInfo.ownerId}}">{{result.entryInfo.owner}}</a>
-                    </div>
-                </td>
-                <td><i ng-show="result.entryInfo.hasAttachment" class="fa fa-paperclip fa-fw"
-                       style="color: #555; font-size: 14px;"></i></td>
-                <td><i ng-show="result.entryInfo.hasSample" class="fa fa-flask fa-fw"
-                       style="color: #555; font-size: 14px;"></i></td>
-                <td><img ng-show="result.entryInfo.hasSequence" src="img/dna.svg" height="16px"/></td>
-                <td style="width:160px; white-space:nowrap">{{result.entryInfo.creationTime | date:'MMM d, yyyy'}}</td>
-=======
                     <div title="{{result.entryInfo.name}}" class="ellipsis" style="width: 350px">
                         {{result.entryInfo.name}}
                     </div>
@@ -650,20 +383,19 @@
                     </div>
                 </td>
                 <td style="vertical-align: middle">
-                    <small ng-if="result.entryInfo.viewCount" style="opacity: 0.4">{{result.entryInfo.viewCount}}
-                        views
+                    <small style="opacity: 0.4">
+                        <ng-pluralize count="result.entryInfo.viewCount"
+                                      when="{'0': '',
+                                  '1': '1 view',
+                                  'other':'{} views'}"></ng-pluralize>
                     </small>
                 </td>
                 <td>
                     <div>
-                        <a ng-href="/profile/{{result.entryInfo.ownerId}}">{{result.entryInfo.owner}}</a>
+                        <a ng-href="profile/{{result.entryInfo.ownerId}}">{{result.entryInfo.owner}}</a>
                     </div>
                 </td>
                 <td style="vertical-align: middle">
-                    <!--<i ng-show="result.entryInfo.hasAttachment" class="fa fa-paperclip fa-fw"-->
-                    <!--style="color: #555; font-size: 14px;"></i>-->
-                    <!--<i ng-show="!result.entryInfo.hasAttachment" class="fa fa-square fa-fw"-->
-                    <!--style="opacity: 0; font-size: 14px;"></i>-->
                     <i ng-show="result.entryInfo.hasSample" class="fa fa-flask fa-fw"
                        style="color: #555; font-size: 14px;"></i>
                     <i ng-show="!result.entryInfo.hasSample" class="fa fa-square fa-fw"
@@ -671,22 +403,23 @@
                     <img ng-show="result.entryInfo.hasSequence" src="img/dna.svg" width="15px"/>
                 </td>
                 <td style="width:130px; white-space:nowrap">{{result.entryInfo.creationTime | date:'MMM d, yyyy'}}</td>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             </tr>
             </tbody>
         </table>
     </div>
 
-    <div class="row" data-ng-if='searchResults && searchResults.results.length > 0'>
+    <div class="row" data-ng-if='searchResults && searchResults.results.length > 0' style="margin-top: -15px">
         <div class="col-md-5" style="padding-left: 0">
-            <pagination total-items="searchResults.resultCount" on-select-page="setSearchResultPage(page)"
-                        page="currentPage" max-size="maxSize"
-                        class="pagination-sm" items-per-page="15" boundary-links="true"></pagination>
+            <pagination total-items="searchResults.resultCount" ng-change="searchResultPageChanged()"
+                        ng-model="params.currentPage" max-size="maxSize"
+                        class="pagination-sm" items-per-page="15" boundary-links="true">
+            </pagination>
         </div>
         <div class="col-md-7" style="margin: 22px 0;">
             <strong class="small">
-                <i ng-show="loadingSearchResults" class="fa fa-spin fa-gear opacity_4"></i> {{pageCounts(currentPage,
-                searchResults.resultCount)}}</strong>
+                <i ng-show="loadingSearchResults" class="fa fa-spin fa-gear opacity_4"></i>
+                {{pageCounts(params.currentPage, searchResults.resultCount)}}
+            </strong>
         </div>
     </div>
 </div>

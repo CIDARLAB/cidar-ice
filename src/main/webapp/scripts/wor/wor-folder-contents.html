@@ -10,62 +10,19 @@
                     <strong>{{selectedPartnerFolder.folderName}}</strong>
                 </span>
 
-                <img alt="Loading..." ng-if="loadingPage" src="/img/loader-mini.gif"/>
+                <img alt="Loading..." ng-if="loadingPage" src="img/loader-mini.gif"/>
                 &nbsp;&nbsp;&nbsp;<span ng-show="folder.id" folder-actions class="font-95em"></span>
             </h4>
         </div>
     </div>
 
     <div class="row">
-<<<<<<< HEAD
-        <table cellspacing="0" class="table table-bordered table-responsive table-hover font-95em"
-=======
         <table cellspacing="0"
                class="table table-responsive table-hover table-condensed table-striped font-95em table-border-bottom"
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                ng-class="{'opacity_4':loadingPage}">
             <thead>
             <tr data-ng-if='selectedPartnerFolder.entries'>
                 <th ng-click="sort('type')" class="cursor_pointer">
-<<<<<<< HEAD
-                    <i ng-show="params.sort=='type'" style="font-size: 14px" class="fa opacity_4"
-                       ng-class="{'fa-sort-down':params.asc==false, 'fa-sort-up':params.asc==true}"></i>
-                    Type
-                </th>
-                <th ng-click="sort('part_id')" class="cursor_pointer">
-                    <i ng-show="params.sort=='part_id'" style="font-size: 14px" class="fa opacity_4"
-                       ng-class="{'fa-sort-down':params.asc==false, 'fa-sort-up':params.asc==true}"></i>
-                    Part ID
-                </th>
-                <th data-ng-click="sort('name')" class="cursor_pointer">
-                    <i ng-show="params.sort=='name'" style="font-size: 14px" class="fa opacity_4"
-                       ng-class="{'fa-sort-down':params.asc==false, 'fa-sort-up':params.asc==true}"></i>
-                    Name
-                </th>
-                <th ng-click="sort('summary')" class="cursor_pointer">
-                    <i ng-show="params.sort=='summary'" style="font-size: 14px" class="fa opacity_4"
-                       ng-class="{'fa-sort-down':params.asc==false, 'fa-sort-up':params.asc==true}"></i>
-                    Summary
-                </th>
-                <th ng-click="sort('status')" class="cursor_pointer">
-                    <i ng-show="params.sort=='status'" style="font-size: 14px" class="fa opacity_4"
-                       ng-class="{'fa-sort-down':params.asc==false, 'fa-sort-up':params.asc==true}"></i>
-                    Status
-                </th>
-                <th style="width:30px">
-                    <i class="fa fa-paperclip fa-fw" style="font-size: 14px; "></i>
-                </th>
-                <th style="width:30px">
-                    <i class="fa fa-flask fa-fw" style="font-size: 14px; "></i>
-                </th>
-                <th style="width:30px; text-align:center">
-                    <img src="img/dna.svg" height="16px"/>
-                </th>
-                <th ng-click="sort('created')" class="cursor_pointer">
-                    <i ng-show="params.sort=='created'" style="font-size: 14px" class="fa opacity_4"
-                       ng-class="{'fa-sort-down':params.asc==false, 'fa-sort-up':params.asc==true}"></i>
-                    Created
-=======
                     <span style="font-size: 12px; text-transform: uppercase">TYPE</span>
                     <i ng-if="params.sort!=='type'" class="sortable fa fa-angle-down"></i>
                     <i ng-show="params.sort=='type'" style="font-size: 14px;" class="fa opacity_4"
@@ -92,7 +49,6 @@
                        ng-class="{'fa-angle-down':params.asc==false, 'fa-angle-up':params.asc==true}"></i>
                 </th>
                 <th style="width:100px;">
-                    <i class="fa fa-paperclip fa-fw" style="font-size: 14px;"></i>
                     <i class="fa fa-flask fa-fw" style="font-size: 14px; "></i>
                     <img src="img/dna.svg" width="15px" alt="has dna"/>
                 </th>
@@ -101,13 +57,12 @@
                     <i ng-show="params.sort=='created'" style="font-size: 14px" class="fa opacity_4"
                        ng-class="{'fa-angle-down':params.asc==false, 'fa-angle-up':params.asc==true}"></i>
                     <i ng-if="params.sort!=='created'" class="sortable fa fa-angle-down"></i>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 </th>
             </tr>
 
             <tr data-ng-show='!selectedPartnerFolder&&!remoteRetrieveError'>
                 <td colspan="10">
-                    <img alt="Loading..." src="/img/loader-mini.gif"/>
+                    <img alt="Loading..." src="img/loader-mini.gif"/>
                     Loading...
                 </td>
             </tr>
@@ -122,40 +77,13 @@
             </thead>
             <tbody>
             <tr data-ng-repeat="entry in selectedPartnerFolder.entries | orderBy:'creationTime':true">
-<<<<<<< HEAD
-                <td>{{entry.type | capitalize}}</td>
-                <td><a ng-click="getRemoteEntryDetails(selectedPartner.id, entry.id, $index)"
-                       class="cell_mouseover form-group"
-                       popover-trigger="mouseenter" ng-mouseover="tooltipDetails(entry)"
-                       popover-template="/views/template.html" popover-title="{{entry.partId}}"
-                       popover-placement="right">{{entry.partId}}</a>
-                </td>
-                <td>
-                    <div title="{{entry.name}}" class="ellipsis" style="width: 150px">{{entry.name}}</div>
-                </td>
-                <td>
-                    <div title="{{entry.shortDescription}}"
-                         style="width: 500px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        {{entry.shortDescription}}
-                    </div>
-                </td>
-                <td style="width:80px; white-space:nowrap">{{entry.status | capitalize}}</td>
-                <td><i ng-show="{{entry.hasAttachment}}" class="fa fa-paperclip fa-fw"
-                       style="color: #555; font-size: 14px;"></i></td>
-                <td><i ng-show="{{entry.hasSample}}" class="fa fa-flask fa-fw"
-                       style="color: #555; font-size: 14px;"></i></td>
-                <td style="width:30px; text-align:center">
-                    <img ng-show="{{entry.hasSequence}}" src="img/dna.svg" height="16px"/>
-                </td>
-                <td style="width:140px; white-space:nowrap">{{entry.creationTime | date:'MMM d, yyyy'}}</td>
-=======
                 <td style="opacity:0.7; font-weight: bold; font-size: 0.85em; text-shadow: 0 1px 0 #fff">
                     {{entry.type | uppercase}}
                 </td>
                 <td><a ng-click="getRemoteEntryDetails(selectedPartner.id, entry.id, $index)"
                        class="cell_mouseover form-group"
                        popover-trigger="mouseenter" ng-mouseover="tooltipDetails(entry)"
-                       popover-template="/views/template.html"
+                       popover-template="worFolderContentsPopoverTemplate"
                        popover-placement="right">{{entry.partId}}</a>
                 </td>
                 <td>
@@ -174,10 +102,6 @@
                     </span>
                 </td>
                 <td style="vertical-align: middle;">
-                    <i ng-show="entry.hasAttachment" class="fa fa-paperclip fa-fw"
-                       style="color: #555; font-size: 14px;"></i>
-                    <i ng-show="!entry.hasAttachment" class="fa fa-square fa-fw"
-                       style="opacity: 0; font-size: 14px;"></i>
                     <i ng-show="entry.hasSample" class="fa fa-flask fa-fw"
                        style="color: #555; font-size: 14px;"></i>
                     <i ng-show="!entry.hasSample" class="fa fa-square fa-fw"
@@ -187,19 +111,19 @@
                 <td style="width:130px; white-space:nowrap; vertical-align: middle;">
                     {{entry.creationTime | date:'MMM d, yyyy'}}
                 </td>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             </tr>
             </tbody>
         </table>
     </div>
     <div class="row" ng-if="selectedPartnerFolder&&selectedPartnerFolder.entries.length > 0">
         <div class="col-md-5" style="padding-left: 0">
-            <pagination total-items="selectedPartnerFolder.count" on-select-page="setPage(page)" page="currentPage"
+            <pagination total-items="selectedPartnerFolder.count" ng-change="worFolderContentPageChange()"
+                        ng-model="params.currentPage"
                         max-size="maxSize" class="pagination-sm" items-per-page="15" boundary-links="true"></pagination>
         </div>
         <div class="col-md-7" style="margin-top: 25px;">
             <strong class="small">
-                <i ng-show="loadingPage" class="fa fa-spin fa-gear opacity_4"></i> {{pageCounts(currentPage,
+                <i ng-show="loadingPage" class="fa fa-spin fa-gear opacity_4"></i> {{pageCounts(params.currentPage,
                 selectedPartnerFolder.count)}}
             </strong>
         </div>

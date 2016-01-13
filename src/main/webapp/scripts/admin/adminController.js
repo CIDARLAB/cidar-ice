@@ -30,6 +30,8 @@ angular.module('ice.admin.controller', [])
 
             $scope.generalSettings = [];
             $scope.emailSettings = [];
+            $scope.booleanSettings = ['NEW_REGISTRATION_ALLOWED', 'PASSWORD_CHANGE_ALLOWED',
+                'PROFILE_EDIT_ALLOWED', 'SEND_EMAIL_ON_ERRORS'];
 
             // retrieve site wide settings
             var settings = Settings(sessionId);
@@ -40,7 +42,8 @@ angular.module('ice.admin.controller', [])
                         $scope.generalSettings.push({
                             'key': (setting.key.replace(/_/g, ' ')).toLowerCase(),
                             'value': setting.value,
-                            'editMode': false
+                            'editMode': false,
+                            'isBoolean': $scope.booleanSettings.indexOf(setting.key) != -1
                         });
                     }
 
@@ -48,7 +51,8 @@ angular.module('ice.admin.controller', [])
                         $scope.emailSettings.push({
                             'key': (setting.key.replace(/_/g, ' ')).toLowerCase(),
                             'value': setting.value,
-                            'editMode': false
+                            'editMode': false,
+                            'isBoolean': $scope.booleanSettings.indexOf(setting.key) != -1
                         });
                     }
                 });
@@ -58,22 +62,22 @@ angular.module('ice.admin.controller', [])
         var menuOption = $stateParams.option;
 
         var menuOptions = $scope.profileMenuOptions = [
-            {url: '/scripts/admin/settings.html', display: 'Settings', selected: true, icon: 'fa-cogs'},
+            {url: 'scripts/admin/settings.html', display: 'Settings', selected: true, icon: 'fa-cogs'},
             {
                 id: 'web',
-                url: '/scripts/admin/wor.html',
+                url: 'scripts/admin/wor.html',
                 display: 'Web of Registries',
                 selected: false,
                 icon: 'fa-globe'
             },
-            {id: 'users', url: '/scripts/admin/users.html', display: 'Users', selected: false, icon: 'fa-user'},
-            {id: 'groups', url: '/scripts/admin/groups.html', display: 'Groups', selected: false, icon: 'fa-group'},
+            {id: 'users', url: 'scripts/admin/users.html', display: 'Users', selected: false, icon: 'fa-user'},
+            {id: 'groups', url: 'scripts/admin/groups.html', display: 'Groups', selected: false, icon: 'fa-group'},
             {
-                id: 'transferred', url: '/scripts/admin/transferred.html', display: 'Transferred Entries',
+                id: 'transferred', url: 'scripts/admin/transferred.html', display: 'Transferred Entries',
                 selected: false, icon: 'fa-list'
             },
             {
-                id: 'samples', url: '/scripts/admin/sample-requests.html', display: 'Sample Requests', selected: false,
+                id: 'samples', url: 'scripts/admin/sample-requests.html', display: 'Sample Requests', selected: false,
                 icon: 'fa-shopping-cart'
             }
         ];
@@ -87,9 +91,9 @@ angular.module('ice.admin.controller', [])
             $scope.adminOptionSelection = menuOptions[index].url;
             $scope.selectedDisplay = menuOptions[index].display;
             if (menuOptions[index].id) {
-                $location.path("/admin/" + menuOptions[index].id);
+                $location.path("admin/" + menuOptions[index].id);
             } else {
-                $location.path("/admin");
+                $location.path("admin");
             }
         };
 
@@ -137,29 +141,25 @@ angular.module('ice.admin.controller', [])
                 newSetting.editMode = false;
             });
         };
+
+        $scope.submitBooleanSetting = function (booleanSetting) {
+            if (booleanSetting.value == undefined || booleanSetting.value.toLowerCase() === "no")
+                booleanSetting.value = "yes";
+            else
+                booleanSetting.value = "no";
+
+            $scope.submitSetting(booleanSetting);
+        }
     })
-<<<<<<< HEAD
-    .controller('AdminTransferredEntriesController', function ($rootScope, $cookieStore, $filter, $location, $scope, Folders, Entry) {
-        $scope.maxSize = 5;
-        $scope.currentPage = 1;
-=======
     .controller('AdminTransferredEntriesController', function ($rootScope, $cookieStore, $filter, $location, $scope, Folders, Entry, Util) {
         $scope.maxSize = 5;
         $scope.currentPage = 1;
         $scope.selectedTransferredEntries = [];
 
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         var params = {folderId: 'transferred'};
 
         // get all entries that are transferred
         $scope.transferredEntries = undefined;
-<<<<<<< HEAD
-        Folders().folder(params, function (result) {
-            $scope.transferredEntries = result;
-        }, function (error) {
-            console.error(error);
-        });
-=======
 
         var getTransferredEntries = function () {
             Folders().folder(params, function (result) {
@@ -170,7 +170,6 @@ angular.module('ice.admin.controller', [])
             });
         };
         getTransferredEntries();
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
         $scope.setPage = function (pageNo) {
             if (pageNo == undefined || isNaN(pageNo))
@@ -189,16 +188,11 @@ angular.module('ice.admin.controller', [])
         };
 
         $scope.acceptEntries = function () {
-<<<<<<< HEAD
-        };
-
-        $scope.rejectEntries = function () {
-=======
             var successHandler = function (result) {
                 getTransferredEntries();
             };
 
-            Util.update("/rest/parts", $scope.selectedTransferredEntries, {visibility: "OK"}, successHandler);
+            Util.update("rest/parts", $scope.selectedTransferredEntries, {visibility: "OK"}, successHandler);
         };
 
         $scope.rejectEntries = function () {
@@ -206,7 +200,7 @@ angular.module('ice.admin.controller', [])
                 getTransferredEntries();
             };
 
-            Util.update("/rest/parts", $scope.selectedTransferredEntries, {visibility: "DELETED"}, successHandler);
+            Util.update("rest/parts", $scope.selectedTransferredEntries, {visibility: "DELETED"}, successHandler);
         };
 
         $scope.selectTransferredEntry = function (entry) {
@@ -218,7 +212,6 @@ angular.module('ice.admin.controller', [])
 
             // add to selected
             $scope.selectedTransferredEntries.push(entry.id);
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         };
 
         $scope.showEntryDetails = function (entry, index) {
@@ -226,8 +219,10 @@ angular.module('ice.admin.controller', [])
                 params.offset = index;
             }
             $rootScope.collectionContext = params;
-            $location.path("/entry/" + entry.id);
+            $location.path("entry/" + entry.id);
         };
+
+        $scope.tranferredPopupTooltip = "scripts/admin/transferred-tooltip.html";
 
         $scope.transferredTooltip = function (entry) {
             $scope.tooltip = undefined;
@@ -250,14 +245,14 @@ angular.module('ice.admin.controller', [])
     })
     .controller('AdminSampleRequestController', function ($scope, $location, $rootScope, $cookieStore, Samples) {
         $rootScope.error = undefined;
-        $scope.selectOptions = ['PENDING', 'FULFILLED', 'REJECTED'];
+
+        $scope.selectOptions = ['ALL', 'PENDING', 'FULFILLED', 'REJECTED'];
 
         var samples = Samples($cookieStore.get("sessionId"));
         $scope.maxSize = 5;
-        $scope.currentPage = 1;
-        $scope.params = {sort: 'requested', asc: false};
+        $scope.params = {sort: 'requested', asc: false, currentPage: 1, status: 'ALL'};
 
-        var requestSamples = function () {
+        $scope.requestSamples = function () {
             $scope.loadingPage = true;
             samples.requests($scope.params, function (result) {
                 $scope.sampleRequests = result;
@@ -273,19 +268,15 @@ angular.module('ice.admin.controller', [])
         };
 
         // initial sample request (uses default paging values)
-        requestSamples();
+        $scope.requestSamples();
 
-        $scope.setSamplePage = function (pageNo) {
-            if (pageNo == undefined || isNaN(pageNo))
-                pageNo = 1;
-
-            $scope.currentPage = pageNo;
-            $scope.params.offset = (pageNo - 1) * 15;
+        $scope.sampleRequestPageChanged = function () {
+            $scope.params.offset = ($scope.params.currentPage - 1) * 15;
             if ($scope.filter) {
                 $scope.params.filter = $scope.filter;
             }
 
-            requestSamples();
+            $scope.requestSamples();
         };
 
         $scope.updateStatus = function (request, newStatus) {
@@ -295,22 +286,25 @@ angular.module('ice.admin.controller', [])
 
                 var i = $scope.sampleRequests.requests.indexOf(request);
                 if (i != -1) {
-                    $scope.sampleRequests.requests[i] = result;
+                    $scope.sampleRequests.requests[i].status = result.status;
                 }
             }, function (error) {
 
             });
         };
 
-        $scope.filterSampleRecords = function () {
-            $scope.loadingPage = true;
-            // initial sample request (uses default paging values)
-            $scope.params.filter = $scope.filter;
-            requestSamples();
-        };
-
         $scope.sort = function (field) {
-            console.log("sort", field);
+            if ($scope.loadingPage)
+                return;
+
+            $scope.loadingPage = true;
+            if ($scope.params.sort === field)
+                $scope.params.asc = !$scope.params.asc;
+            else
+                $scope.params.asc = false;
+
+            $scope.params.sort = field;
+            requestSamples();
         };
     })
     .controller('AdminUserController', function ($rootScope, $scope, $stateParams, $cookieStore, User) {

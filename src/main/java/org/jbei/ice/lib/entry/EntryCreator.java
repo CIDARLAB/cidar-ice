@@ -4,10 +4,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jbei.ice.ApplicationController;
 import org.jbei.ice.lib.access.Permission;
 import org.jbei.ice.lib.account.model.Account;
-<<<<<<< HEAD
-import org.jbei.ice.lib.common.logging.Logger;
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.jbei.ice.lib.dao.DAOFactory;
 import org.jbei.ice.lib.dao.hibernate.EntryDAO;
 import org.jbei.ice.lib.dao.hibernate.PermissionDAO;
@@ -191,45 +187,4 @@ public class EntryCreator {
         entry = createEntry(account, entry, part.getAccessPermissions());
         return entry.getId();
     }
-<<<<<<< HEAD
-
-    public PartData receiveTransferredEntry(PartData part) {
-        // check the record id
-        if (StringUtils.isNotEmpty(part.getRecordId())) {
-            Entry entry = dao.getByRecordId(part.getRecordId());
-            if (entry != null) {
-                Logger.warn("Transferred entry's record id \"" + part.getRecordId() + "\" conflicts with existing");
-                return null;
-            }
-        }
-
-        Entry entry = saveTransferred(part);
-        if (entry == null)
-            return null;
-        part.setId(entry.getId());
-        part.setRecordId(entry.getRecordId());
-        return part;
-    }
-
-    protected Entry saveTransferred(PartData part) {
-        Entry entry = InfoToModelFactory.infoToEntry(part);
-        entry.setVisibility(Visibility.TRANSFERRED.getValue());
-        entry = dao.create(entry);
-
-        // transfer and linked
-        if (part.getLinkedParts() != null) {
-            for (PartData data : part.getLinkedParts()) {
-                // check if linked already exists before creating
-                Entry linked = dao.getByRecordId(data.getRecordId());
-                if (linked == null)
-                    linked = saveTransferred(data);
-                entry.getLinkedEntries().add(linked);
-                dao.update(entry);
-            }
-        }
-
-        return entry;
-    }
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 }

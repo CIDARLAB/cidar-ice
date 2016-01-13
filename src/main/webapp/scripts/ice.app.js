@@ -21,38 +21,6 @@ iceApp.run(function (Authentication, $rootScope) {
     $rootScope.logout = function () {
         Authentication.logout();
     };
-<<<<<<< HEAD
-
-//    $rootScope.$on('$stateChangeStart',
-//        function (event, toState, toParams, fromState, fromParams) {
-//            if (toState.name === 'logout' || toState.name === "login")
-//                return;
-//
-//            var sid = $cookieStore.get("sessionId");
-//            if (sid === undefined) {
-//                console.log("sid undefined");
-//                $rootScope.user = undefined;
-//                $location.path('/login');
-//                return;
-//            }
-//
-//            Authentication.isSessionValid(sid)
-//                .success(function (data) {
-//                    if (data.length == 0) {
-//                        console.log(data);
-//                        console.log("session invalid");
-//                        // clear all stored information
-//                        $rootScope.user = undefined;
-//                        $location.path('/login');
-//                    }
-//
-//                    $rootScope.user = data;
-//                })
-//                .error(function (data) {
-//                });
-//        })
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 });
 
 iceApp.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {
@@ -64,7 +32,7 @@ iceApp.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {
     $stateProvider
         .state('main', {
             url:'/',
-            templateUrl:'/views/folder.html',
+            templateUrl:'views/folder.html',
             controller:'CollectionController',
             resolve:{
                 sessionValid:function (Authentication) {
@@ -75,21 +43,21 @@ iceApp.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {
         .state('login', {
             url:'/login',
             controller:'LoginController',
-            templateUrl:'/views/login.html'
+            templateUrl:'views/login.html'
         })
         .state('register', {
             url:'/register',
             controller:'RegisterController',
-            templateUrl:'/views/register.html'
+            templateUrl:'views/register.html'
         })
         .state('forgot-password', {
             url:'/forgot-password',
             controller:'ForgotPasswordController',
-            templateUrl:'/views/forgot-password.html'
+            templateUrl:'views/forgot-password.html'
         })
         .state('main.folder', {
             url:'folders/:collection',
-            templateUrl:'/views/collection-selection.html',
+            templateUrl:'views/collection-selection.html',
             resolve:{
                 sessionValid:function (Authentication) {
                     return Authentication.isSessionValid();
@@ -98,7 +66,7 @@ iceApp.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {
         })
         .state('main.web', {
             url:'web',
-            templateUrl:'/scripts/wor/index.html',
+            templateUrl:'scripts/wor/index.html',
             resolve:{
                 sessionValid:function (Authentication) {
                     return Authentication.isSessionValid();
@@ -107,18 +75,18 @@ iceApp.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {
         })
         .state('main.web.list', {
             url:'/:partner',
-            templateUrl:'/scripts/wor/wor-contents.html',
+            templateUrl:'scripts/wor/wor-contents.html',
             controller:'WorContentController'
         })
         .state('main.web.entry', {
             url:'/:partner/entry/:entryId',
-            templateUrl:'/scripts/wor/entry.html',
+            templateUrl:'scripts/wor/entry.html',
             controller:'WorEntryController'
         })
 
         .state('main.web_folder', {
             url:'web/:partner/folder/:folderId',
-            templateUrl:'/scripts/wor/wor-folder-contents.html',
+            templateUrl:'scripts/wor/wor-folder-contents.html',
             controller:'WorFolderContentController',
             resolve:{
                 sessionValid:function (Authentication) {
@@ -139,11 +107,11 @@ iceApp.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {
         .state('main.edit', {
             url:'entry/edit/:id',
             controller:'EditEntryController',
-            templateUrl:'/scripts/entry/edit.html'
+            templateUrl:'scripts/entry/edit.html'
         })
         .state('main.entry', {
             url:'entry/:id',
-            templateUrl:'/views/entry.html',
+            templateUrl:'views/entry.html',
             resolve:{
                 sessionValid:function (Authentication) {
                     return Authentication.isSessionValid();
@@ -152,20 +120,20 @@ iceApp.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {
         })
         .state('main.entry.option', {
             url:'/:option',
-            templateUrl:'/scripts/entry/sequence-analysis.html'
+            templateUrl:'scripts/entry/sequence-analysis.html'
         })
         .state('main.create', {
             url:'create/:type',
             controller:'CreateEntryController',
-            templateUrl:'/scripts/entry/create-entry.html'
+            templateUrl:'scripts/entry/create-entry.html'
         })
         .state('main.profile', {
             url:'profile/:id',
-            templateUrl:'/views/profile.html'
+            templateUrl: 'scripts/profile/profile.html'
         })
         .state('main.profile.option', {
             url:'/:option',
-            templateUrl:'/views/profile/groups.html',
+            templateUrl: 'scripts/profile/groups.html',
             resolve:{
                 sessionValid:function (Authentication) {
                     return Authentication.isSessionValid();
@@ -174,7 +142,7 @@ iceApp.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {
         })
         .state('main.admin', {
             url:'admin',
-            templateUrl:'/scripts/admin/admin.html',
+            templateUrl:'scripts/admin/admin.html',
             resolve:{
                 sessionValid:function (Authentication) {
                     return Authentication.isSessionValid() && Authentication.isAdmin();
@@ -183,13 +151,13 @@ iceApp.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {
         })
         .state('main.admin.option', {
             url:'/:option',
-            templateUrl:'/scripts/admin/settings.html'
+            templateUrl:'scripts/admin/settings.html'
 
         })
         .state('main.upload', {
             url:'upload/:type',
             controller:'UploadController',
-            templateUrl:'/scripts/upload/import.html',
+            templateUrl:'scripts/upload/import.html',
             resolve:{
                 sessionValid:function (Authentication) {
                     return Authentication.isSessionValid();
@@ -199,12 +167,12 @@ iceApp.config(function ($locationProvider, $stateProvider, $urlRouterProvider) {
         .state('flash', {
             url:'/static/swf/:shortHand/:swfName?entryId&sessionId&url',
             controller:'FullScreenFlashController',
-            templateUrl:'/scripts/entry/fullscreen-flash.html'
+            templateUrl:'scripts/entry/fullscreen-flash.html'
         })
         .state('redirect', {
             url: '/page=collections;id=:id',
             controller: function ($stateParams, $location) {
-                $location.path("/folders/" + $stateParams.id);
+                $location.path("folders/" + $stateParams.id);
             }
         })
     ;

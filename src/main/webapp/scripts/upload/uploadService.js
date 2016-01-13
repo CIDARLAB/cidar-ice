@@ -36,7 +36,7 @@ angular.module('ice.upload.service', [])
 
         var seedHeaders = angular.copy(partHeaders);
         seedHeaders.splice.apply(seedHeaders, [15, 0].concat(["Homozygosity", "Ecotype", "Harvest Date", "Parents",
-            "Plant Type", "Generation", "Sent to ABRC?"]));
+            "Plant Type", "Generation", "Sent to ABRC?", "Selection Markers <span class='required'>*</span>"]));
 
         //
         // data schema (should map exactly to headers)
@@ -56,7 +56,7 @@ angular.module('ice.upload.service', [])
 
         var seedSchema = angular.copy(dataSchema);
         seedSchema.splice.apply(seedSchema, [15, 0].concat('homozygosity', 'ecotype', 'harvestDate', 'parents',
-            'plantType', 'generation', 'sentToAbrc'));
+            'plantType', 'generation', 'sentToAbrc', 'selectionMarkers'));
 
         return {
             getDataSchema: function (type) {
@@ -112,10 +112,7 @@ angular.module('ice.upload.service', [])
 
             setDataValue: function (type, index, object, value) {
                 var dataSchema = this.getDataSchema(type);
-<<<<<<< HEAD
-=======
                 // links is an array
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 if (dataSchema[index] == "links") {
                     object[dataSchema[index]] = [value];
                     return object;
@@ -126,20 +123,13 @@ angular.module('ice.upload.service', [])
                     return object;
                 }
 
-<<<<<<< HEAD
-=======
                 // selection marker is an array
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 if (dataSchema[index] == "selectionMarkers") {
                     object[dataSchema[index]] = [value];
                     return object;
                 }
 
                 // index is greater than 15 so it is one of the specialized types (strain, plasmid, seed)
-<<<<<<< HEAD
-                // note that this method does not take links into account
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 switch (type.toLowerCase()) {
                     case "strain":
                         object.strainData[dataSchema[index]] = value;

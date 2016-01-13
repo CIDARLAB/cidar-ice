@@ -305,11 +305,7 @@ public class PermissionsController {
     /**
      * Propagates the permissions for the folder to the contained entries
      *
-<<<<<<< HEAD
-     * @param account account of user requesting action that led to this call
-=======
      * @param userId unique identifier for account of user requesting action that led to this call
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
      * @param folder  folder user permissions are being propagated
      * @param add     true if folder is to be added, false otherwise
      * @return true if action permission was propagated successfully

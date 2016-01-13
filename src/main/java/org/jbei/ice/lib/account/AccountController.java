@@ -401,6 +401,7 @@ public class AccountController {
 
         if (email == null)
             return null;
+
         Account account = dao.getByEmail(email);
         if (account == null)
             return null;
@@ -415,19 +416,6 @@ public class AccountController {
     }
 
     /**
-<<<<<<< HEAD
-     * See if the given sessionKey is still authenticated with the system.
-     *
-     * @param sessionKey unique session identifier
-     * @return True if sessionKey is still authenticated (active) to the system.
-     */
-    public static boolean isAuthenticated(String sessionKey) {
-        return SessionHandler.isValidSession(sessionKey);
-    }
-
-    /**
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
      * De-authenticate the given sessionKey. The user is logged out from the system.
      *
      * @param sessionKey unique session identifier

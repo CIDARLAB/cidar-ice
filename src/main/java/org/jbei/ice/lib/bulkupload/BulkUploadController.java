@@ -22,6 +22,7 @@ import org.jbei.ice.lib.entry.attachment.Attachment;
 import org.jbei.ice.lib.entry.attachment.AttachmentController;
 import org.jbei.ice.lib.entry.model.Entry;
 import org.jbei.ice.lib.entry.sequence.SequenceController;
+import org.jbei.ice.lib.executor.IceExecutorService;
 import org.jbei.ice.lib.group.Group;
 import org.jbei.ice.lib.group.GroupController;
 import org.jbei.ice.lib.models.Sequence;
@@ -77,9 +78,11 @@ public class BulkUploadController {
         upload.setAccount(account);
         upload.setCreationTime(new Date());
         upload.setLastUpdateTime(upload.getCreationTime());
-        if (info.getStatus() == BulkUploadStatus.BULK_EDIT)
+        if (info.getStatus() == BulkUploadStatus.BULK_EDIT) {
+            // only one instance of bulk edit is allowed to remain
+            clearBulkEdits(userId);
             upload.setStatus(BulkUploadStatus.BULK_EDIT);
-        else
+        } else
             upload.setStatus(BulkUploadStatus.IN_PROGRESS);
 
         upload.setImportType(info.getType());
@@ -111,6 +114,28 @@ public class BulkUploadController {
 
         dao.update(upload);
         return upload.toDataTransferObject();
+    }
+
+    /**
+     * Removes any bulk edits belonging to the specified user
+     *
+     * @param userId unique identifier for user whose bulk edits are to be removed
+     */
+    protected void clearBulkEdits(String userId) {
+        Account account = DAOFactory.getAccountDAO().getByEmail(userId);
+        if (account == null)
+            return;
+
+        List<BulkUpload> userEdits = dao.retrieveByAccount(account);
+        if (userEdits == null || userEdits.isEmpty())
+            return;
+
+        for (BulkUpload upload : userEdits) {
+            if (upload.getStatus() != BulkUploadStatus.BULK_EDIT)
+                continue;
+            upload.getContents().clear();
+            dao.delete(upload);
+        }
     }
 
     /**
@@ -282,27 +307,9 @@ public class BulkUploadController {
         Account draftAccount = draft.getAccount();
         if (!userId.equals(draftAccount.getEmail()) && !accountController.isAdministrator(userId))
             throw new PermissionException("No permissions to delete draft " + draftId);
-<<<<<<< HEAD
 
-        // delete all associated entries. for strain with plasmids both are returned
-        // todo : use task to speed up process and also check for status
-
-=======
-
-        // delete all associated entries. for strain with plasmids both are returned
-        // todo : use task to speed up process and also check for status
-
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
-        ArrayList<Long> entryIds = dao.getEntryIds(draft);
-        for (long entryId : entryIds) {
-            try {
-                entryController.delete(userId, entryId);
-            } catch (PermissionException pe) {
-                Logger.warn(userId + " does not have permission to delete" + entryId + " for bulk upload " + draftId);
-            }
-        }
-
-        dao.delete(draft);
+        BulkUploadDeleteTask task = new BulkUploadDeleteTask(userId, draftId);
+        IceExecutorService.getInstance().runTask(task);
 
         BulkUploadInfo draftInfo = draft.toDataTransferObject();
         AccountTransfer accountTransfer = draft.getAccount().toDataTransferObject();
@@ -531,74 +538,6 @@ public class BulkUploadController {
         } catch (Exception e) {
             Logger.error(e);
             return false;
-<<<<<<< HEAD
-        }
-
-        return true;
-    }
-
-    public List<AccessPermission> getUploadPermissions(String userId, long uploadId) {
-        List<AccessPermission> permissions = new ArrayList<>();
-        BulkUpload upload = dao.get(uploadId);
-        if (upload == null)
-            return permissions;
-
-        authorization.expectWrite(userId, upload);
-
-        if (upload.getPermissions() != null) {
-            for (Permission permission : upload.getPermissions())
-                permissions.add(permission.toDataTransferObject());
-        }
-
-        return permissions;
-    }
-
-    /**
-     * Adds specified access permission to the bulk upload.
-     *
-     * @param userId   unique identifier of user making the request. Must be an admin or owner of the upload
-     * @param uploadId unique identifier for bulk upload
-     * @param access   details about the permission to the added
-     * @return added permission with identifier that can be used to remove/delete the permission
-     * @throws java.lang.IllegalArgumentException if the upload cannot be located using its identifier
-     */
-    public AccessPermission addPermission(String userId, long uploadId, AccessPermission access) {
-        BulkUpload upload = dao.get(uploadId);
-        if (upload == null)
-            throw new IllegalArgumentException("Could not locate bulk upload with id " + uploadId);
-
-        access.setTypeId(uploadId);
-        Permission permission = new PermissionsController().addPermission(userId, access);
-        upload.getPermissions().add(permission);
-        dao.update(upload);
-        return permission.toDataTransferObject();
-    }
-
-    /**
-     * Removes specified permission from bulk upload
-     *
-     * @param userId       unique identifier of user making the request. Must be an admin or owner of the bulk upload
-     * @param uploadId     unique identifier for bulk upload
-     * @param permissionId unique identifier for permission that has been previously added to upload
-     * @return true if deletion is successful
-     * @throws java.lang.IllegalArgumentException if upload or permission cannot be located by their identifiers
-     */
-    public boolean deletePermission(String userId, long uploadId, long permissionId) {
-        BulkUpload upload = dao.get(uploadId);
-        if (upload == null)
-            throw new IllegalArgumentException("Could not locate bulk upload with id " + uploadId);
-
-        authorization.expectWrite(userId, upload);
-        Permission toDelete = null;
-
-        if (upload.getPermissions() != null) {
-            for (Permission permission : upload.getPermissions()) {
-                if (permission.getId() == permissionId) {
-                    toDelete = permission;
-                    break;
-                }
-            }
-=======
         }
 
         return true;
@@ -614,18 +553,9 @@ public class BulkUploadController {
         } catch (Exception e) {
             Logger.error(e);
             return false;
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         }
     }
 
-<<<<<<< HEAD
-        if (toDelete == null)
-            throw new IllegalArgumentException("Could not locate permission for deletion");
-
-        upload.getPermissions().remove(toDelete);
-        DAOFactory.getPermissionDAO().delete(toDelete);
-        return dao.update(upload) != null;
-=======
     public List<AccessPermission> getUploadPermissions(String userId, long uploadId) {
         List<AccessPermission> permissions = new ArrayList<>();
         BulkUpload upload = dao.get(uploadId);
@@ -723,6 +653,5 @@ public class BulkUploadController {
             dataList.add(entry.getPartNumber());
         }
         return dataList;
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     }
 }

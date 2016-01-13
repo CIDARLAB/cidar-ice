@@ -7,9 +7,14 @@
                     <td>
                         <h4>
                             <span style="white-space: nowrap">
-                                <img alt="Loading..." ng-if="loadingPage" src="/img/loader-mini.gif"/>
-                                <strong><span style="text-transform: uppercase; color: #888"> {{selectedCollection || folder.type}}</span>
-                                    {{folder.folderName}}</strong>
+                                <img alt="Loading..." ng-if="loadingPage" src="img/loader-mini.gif"/>
+                                <strong>
+                                    <span style="text-transform: uppercase; color: #888">{{selectedCollection || folder.type}}</span>
+                                    <span ng-class="{folder_name:folder.canEdit}" tooltip={{folderNameTooltip}}
+                                          ng-click="showFolderRenameModal()">
+                                        {{folder.folderName}}
+                                    </span>
+                                </strong>
                                 <span ng-if="folder.publicReadAccess">&nbsp;
                                     <small style="font-size: 12px; position: relative; top: -4px"
                                            tooltip="Available on web of registries"
@@ -22,7 +27,7 @@
 
                             <div class="no_wrap">
                                 <small class="font-65em" ng-if="folder.type==='SHARED'">
-                                    Shared by <a ng-href="/profile/{{folder.owner.id}}">{{folder.owner.firstName}}
+                                    Shared by <a ng-href="profile/{{folder.owner.id}}">{{folder.owner.firstName}}
                                     {{folder.owner.lastName}}</a>
                                     <span style="color: #ccc; width: 1px">&nbsp;|&nbsp;</span>
                                 </small>
@@ -54,7 +59,7 @@
     <!--collections like 'personal', 'available' do not have a folderName-->
     <div class="row" ng-if="!folder.type">
         <div class="col-md-12 entry_general_header_td">
-            <h4><img alt="Loading..." ng-if="loadingPage" src="/img/loader-mini.gif"/>
+            <h4><img alt="Loading..." ng-if="loadingPage" src="img/loader-mini.gif"/>
                 <strong style="color: #888;text-transform: uppercase;">{{selectedFolder}}</strong>
                 <!--<br><small class="font-65em">Folder Description</small>-->
             </h4>
@@ -63,42 +68,27 @@
 
     <div class="row">
         <div class="pad_top" data-ng-show='!folder'>
-            <img alt="Loading..." src="/img/loader-mini.gif"/> Loading...
+            <img alt="Loading..." src="img/loader-mini.gif"/> Loading...
         </div>
 
         <div class="pad_top" ng-show="folder && folder.entries.length == 0">
-<<<<<<< HEAD
-            No entries for selection
-        </div>
-
-        <table ng-if='folder && folder.entries.length > 0' cellspacing="0"
-               class="table table-bordered table-responsive table-hover font-95em"
-=======
             No entries available for selection
         </div>
 
-        <table ng-if="folder && folder.entries" cellspacing="0"
-               class="table table-responsive table-border-bottom table-hover table-condensed table-striped font-95em"
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
+        <table ng-if="folder && folder.entries && folder.entries.length" cellspacing="0"
+               class="table table-responsive table-border-bottom table-hover table-condensed font-95em"
                ng-class="{'opacity_4':loadingPage}">
             <thead>
             <tr>
                 <!--selection toggle-->
-<<<<<<< HEAD
-                <th class="dropdown" style="padding:0; vertical-align: middle; text-align: center">
-                    <span class="dropdown-toggle">
-                    <i class="fa cursor_default" ng-class="selectAllClass()" ng-click="selectAll()"
-                       stop-event="click"></i>
-                    <span class="caret cursor_pointer"></span>
-=======
-                <th class="dropdown" style="padding:0; font-size: 15px; vertical-align: middle; text-align: center">
-                    <span class="dropdown-toggle">
+                <th class="dropdown" dropdown
+                    style="padding:0; font-size: 15px; vertical-align: middle; text-align: center">
+                    <span class="dropdown-toggle" dropdown-toggle>
                         <i class="fa cursor_default" ng-class="selectAllClass()" ng-click="selectAll()"
                            stop-event="click"></i>
                         <span class="caret cursor_pointer"></span>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                     </span>
-                    <ul class="dropdown-menu" style="min-width: 100px">
+                    <ul class="dropdown-menu" dropdown-menu style="min-width: 100px">
                         <li class="font-75em cursor_pointer" ng-click="setType('all')"><a>All</a></li>
                         <li ng-repeat="choice in items" ng-click="setType(choice.type)"
                             class="font-75em cursor_pointer">
@@ -111,45 +101,6 @@
                     <!--ng-show="selection.length>0">{{selection.length}}</sup>-->
                 </th>
                 <th ng-click="sort('type')" class="cursor_pointer">
-<<<<<<< HEAD
-                    <i ng-show="params.sort=='type'" style="font-size: 14px" class="fa opacity_4"
-                       ng-class="{'fa-sort-down':params.asc==false, 'fa-sort-up':params.asc==true}"></i>
-                    Type
-                </th>
-                <th ng-click="sort('part_id')" class="cursor_pointer">
-                    <i ng-show="params.sort=='part_id'" style="font-size: 14px" class="fa opacity_4"
-                       ng-class="{'fa-sort-down':params.asc==false, 'fa-sort-up':params.asc==true}"></i>
-                    Part ID
-                </th>
-                <th data-ng-click="sort('name')" class="cursor_pointer">
-                    <i ng-show="params.sort=='name'" style="font-size: 14px" class="fa opacity_4"
-                       ng-class="{'fa-sort-down':params.asc==false, 'fa-sort-up':params.asc==true}"></i>
-                    Name
-                </th>
-                <th ng-click="sort('summary')" class="cursor_pointer">
-                    <i ng-show="params.sort=='summary'" style="font-size: 14px" class="fa opacity_4"
-                       ng-class="{'fa-sort-down':params.asc==false, 'fa-sort-up':params.asc==true}"></i>
-                    Summary
-                </th>
-                <th ng-click="sort('status')" class="cursor_pointer">
-                    <i ng-show="params.sort=='status'" style="font-size: 14px" class="fa opacity_4"
-                       ng-class="{'fa-sort-down':params.asc==false, 'fa-sort-up':params.asc==true}"></i>
-                    Status
-                </th>
-                <th style="width:30px">
-                    <i class="fa fa-paperclip fa-fw" style="font-size: 14px"></i>
-                </th>
-                <th style="width:30px">
-                    <i class="fa fa-flask fa-fw" style="font-size: 14px"></i>
-                </th>
-                <th style="width:30px; text-align:center">
-                    <img src="img/dna.svg" height="16px" alt="has dna"/>
-                </th>
-                <th ng-click="sort('created')" class="cursor_pointer">
-                    <i ng-show="params.sort=='created'" style="font-size: 14px" class="fa opacity_4"
-                       ng-class="{'fa-sort-down':params.asc==false, 'fa-sort-up':params.asc==true}"></i>
-                    Created
-=======
                     <span style="font-size: 12px; text-transform: uppercase">TYPE</span>
                     <i ng-if="params.sort!=='type'" class="sortable fa fa-angle-down"></i>
                     <i ng-show="params.sort=='type'" style="font-size: 14px;" class="fa opacity_4"
@@ -177,7 +128,6 @@
                        ng-class="{'fa-angle-down':params.asc==false, 'fa-angle-up':params.asc==true}"></i>
                 </th>
                 <th style="width:100px;">
-                    <i class="fa fa-paperclip fa-fw" style="font-size: 14px;"></i>
                     <i class="fa fa-flask fa-fw" style="font-size: 14px; "></i>
                     <img src="img/dna.svg" width="15px" alt="has dna"/>
                 </th>
@@ -186,24 +136,12 @@
                     <i ng-show="params.sort=='created'" style="font-size: 14px" class="fa opacity_4"
                        ng-class="{'fa-angle-down':params.asc==false, 'fa-angle-up':params.asc==true}"></i>
                     <i ng-if="params.sort!=='created'" class="sortable fa fa-angle-down"></i>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 </th>
             </tr>
             </thead>
 
             <tbody>
             <tr data-ng-repeat="entry in folder.entries">
-<<<<<<< HEAD
-                <td width="10px">
-                    <!--<i class="fa cursor_pointer fa-check-square-o" ng-if="allSelected"-->
-                    <!--style="color: #000; font-size: 14px;" ng-click="select(entry)"></i>-->
-
-                    <i class="fa fa-fw color-888 cursor_default"
-                       ng-class="{'fa-square-o':!isSelected(entry), 'fa-check-square-o':isSelected(entry)}"
-                       ng-click="select(entry)"></i>
-                </td>
-                <td>{{entry.type | capitalize}}</td>
-=======
                 <td width="43px">
                     <!--<i class="fa cursor_pointer fa-check-square-o" ng-if="allSelected"-->
                     <!--style="color: #000; font-size: 14px;" ng-click="select(entry)"></i>-->
@@ -215,31 +153,11 @@
                 <td style="opacity:0.7; font-weight: bold; font-size: 0.85em; text-shadow: 0 1px 0 #fff">
                     {{entry.type | uppercase}}
                 </td>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 <td><a ng-click="showEntryDetails(entry, $index)" class="cell_mouseover form-group"
                        popover-trigger="mouseenter" ng-mouseover="tooltipDetails(entry)"
-                       popover-template="/views/template.html" popover-placement="right">{{entry.partId}}</a>
+                       popover-template="folderPopupTemplateUrl" popover-placement="right">{{entry.partId}}</a>
                 </td>
                 <td>
-<<<<<<< HEAD
-                    <div title="{{entry.name}}" class="ellipsis" style="width: 150px">{{entry.name}}</div>
-                </td>
-                <td>
-                    <div tooltip="{{entry.shortDescription}}"
-                         style="width: 500px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        {{entry.shortDescription}}
-                    </div>
-                </td>
-                <td style="width:80px; white-space:nowrap">{{entry.status | capitalize}}</td>
-                <td><i ng-show="entry.hasAttachment" class="fa fa-paperclip fa-fw"
-                       style="color: #555; font-size: 14px;"></i></td>
-                <td><i ng-show="entry.hasSample" class="fa fa-flask fa-fw"
-                       style="color: #555; font-size: 14px;"></i></td>
-                <td style="width:30px; text-align:center">
-                    <img ng-show="entry.hasSequence" src="img/dna.svg" height="16px"/>
-                </td>
-                <td style="width:160px; white-space:nowrap">{{entry.creationTime | date:'MMM d, yyyy'}}</td>
-=======
                     <div title="{{entry.name}}" class="ellipsis" style="width: 350px">{{entry.name}}</div>
                     <div title="{{entry.shortDescription}}" class="small"
                          style="opacity: 0.6; width: 350px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -247,7 +165,12 @@
                     </div>
                 </td>
                 <td style="vertical-align: middle">
-                    <small ng-if="entry.viewCount" style="opacity: 0.4">{{entry.viewCount}} views</small>
+                    <small style="opacity: 0.4">
+                        <ng-pluralize count="entry.viewCount"
+                                      when="{'0': '',
+                                  '1': '1 view',
+                                  'other':'{} views'}"></ng-pluralize>
+                    </small>
                 </td>
                 <td style="vertical-align: middle; width:100px; white-space:nowrap">
                     <span class="label" ng-class="{
@@ -258,10 +181,6 @@
                     </span>
                 </td>
                 <td style="vertical-align: middle;">
-                    <i ng-show="entry.hasAttachment" class="fa fa-paperclip fa-fw"
-                       style="color: #555; font-size: 14px;"></i>
-                    <i ng-show="!entry.hasAttachment" class="fa fa-square fa-fw"
-                       style="opacity: 0; font-size: 14px;"></i>
                     <i ng-show="entry.hasSample" class="fa fa-flask fa-fw"
                        style="color: #555; font-size: 14px;"></i>
                     <i ng-show="!entry.hasSample" class="fa fa-square fa-fw"
@@ -271,19 +190,19 @@
                 <td style="width:130px; white-space:nowrap; vertical-align: middle;">
                     {{entry.creationTime | date:'MMM d, yyyy'}}
                 </td>
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
             </tr>
             </tbody>
         </table>
     </div>
-    <div class="row" ng-if="folder && folder.entries.length > 0">
+    <div class="row" ng-if="folder && folder.entries.length > 0" style="margin-top: -15px">
         <div class="col-md-5" style="padding-left: 0">
-            <pagination total-items="folder.count" on-select-page="setPage(page)" page="currentPage" max-size="maxSize"
-                        class="pagination-sm" items-per-page="15" boundary-links="true"></pagination>
+            <pagination total-items="folder.count" ng-change="folderPageChange()" ng-model="params.currentPage"
+                        max-size="maxSize" class="pagination-sm" items-per-page="15" boundary-links="true">
+            </pagination>
         </div>
         <div class="col-md-7" style="margin-top: 25px;">
             <strong class="small">
-                <i ng-show="loadingPage" class="fa fa-spin fa-gear opacity_4"></i> {{pageCounts(currentPage,
+                <i ng-show="loadingPage" class="fa fa-spin fa-gear opacity_4"></i> {{pageCounts(params.currentPage,
                 folder.count)}}
             </strong>
         </div>

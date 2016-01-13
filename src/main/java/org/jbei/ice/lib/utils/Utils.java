@@ -17,15 +17,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
 
-<<<<<<< HEAD
-import org.jbei.ice.lib.common.logging.Logger;
-import org.jbei.ice.lib.config.ConfigurationController;
-import org.jbei.ice.lib.dto.ConfigurationKey;
-
-import org.apache.commons.lang.RandomStringUtils;
-
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 /**
  * General utility methods.
  *
@@ -165,16 +156,5 @@ public class Utils {
         if (value != null)
             return value;
         return key.getDefaultValue();
-<<<<<<< HEAD
-    }
-
-    public static boolean canRegister() {
-        String value = getConfigValue(ConfigurationKey.NEW_REGISTRATION_ALLOWED);
-        if (value == null)
-            return false;
-
-        return value.equalsIgnoreCase("yes") || value.equalsIgnoreCase("true");
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     }
 }

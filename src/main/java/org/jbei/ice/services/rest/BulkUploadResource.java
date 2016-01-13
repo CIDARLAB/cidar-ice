@@ -25,6 +25,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -60,8 +61,6 @@ public class BulkUploadResource extends RestResource {
     }
 
     /**
-<<<<<<< HEAD
-=======
      * Retrieves matching part numbers to be linked to entries in a bulk upload
      *
      * @return list of matching part numbers based on passed parameters
@@ -74,13 +73,12 @@ public class BulkUploadResource extends RestResource {
             @QueryParam("token") String token,
             @DefaultValue("8") @QueryParam("limit") int limit,
             @HeaderParam("X-ICE-Authentication-SessionId") String sessionId) {
-        String userId = getUserIdFromSessionHeader(sessionId);
+        getUserIdFromSessionHeader(sessionId);
         ArrayList<String> results = controller.getMatchingPartNumbersForLinks(uploadType, token, limit);
         return super.respond(results);
     }
 
     /**
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
      * Retrieves permissions associated with an upload
      *
      * @param sessionId unique session identifier for the user making request
@@ -294,14 +292,11 @@ public class BulkUploadResource extends RestResource {
             // converted to string because there is no messagebodywriter for json for long
             String importId = Long.toString(bulkUpload.process());
             return Response.status(Response.Status.OK).entity(importId).build();
-        } catch (Exception e) {
+        } catch (IOException e) {
             Logger.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
-
-<<<<<<< HEAD
-=======
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
@@ -319,7 +314,6 @@ public class BulkUploadResource extends RestResource {
         }
     }
 
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/entry/{entryId}/sequence")

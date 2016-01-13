@@ -1,14 +1,4 @@
 package org.jbei.ice.lib.dao.hibernate;
-<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/dao/hibernate/RemotePartnerDAO.java
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jbei.ice.lib.common.logging.Logger;
-import org.jbei.ice.lib.dao.DAOException;
-import org.jbei.ice.lib.net.RemotePartner;
-=======
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c:src/main/java/org/jbei/ice/lib/dao/hibernate/RemotePartnerDAO.java
 
 import org.hibernate.HibernateException;
 import org.hibernate.criterion.Restrictions;

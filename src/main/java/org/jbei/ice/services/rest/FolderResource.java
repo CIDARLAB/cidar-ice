@@ -9,14 +9,7 @@ import org.jbei.ice.lib.dto.folder.FolderType;
 import org.jbei.ice.lib.dto.permission.AccessPermission;
 import org.jbei.ice.lib.entry.EntryController;
 import org.jbei.ice.lib.entry.EntrySelection;
-<<<<<<< HEAD
-import org.jbei.ice.lib.folder.Collection;
-import org.jbei.ice.lib.folder.FolderContent;
-import org.jbei.ice.lib.folder.FolderContentRetriever;
-import org.jbei.ice.lib.folder.FolderController;
-=======
 import org.jbei.ice.lib.folder.*;
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 import org.jbei.ice.lib.shared.ColumnField;
 
 import javax.ws.rs.*;
@@ -68,16 +61,11 @@ public class FolderResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ArrayList<FolderDetails> getSubFolders(
             @DefaultValue("personal") @PathParam("type") String folderType,
-<<<<<<< HEAD
-            @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
-        String sid = getUserIdFromSessionHeader(userAgentHeader);
-=======
             @DefaultValue("false") @QueryParam("canEdit") boolean canEdit,
             @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
         String sid = getUserIdFromSessionHeader(userAgentHeader);
         if (canEdit)
             return new Folders().getCanEditFolders(sid);
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
         switch (folderType) {
             case "personal":
@@ -103,13 +91,8 @@ public class FolderResource extends RestResource {
     @PUT
     @Path("/{id}")
     public Response update(@PathParam("id") long folderId,
-<<<<<<< HEAD
-            FolderDetails details,
-            @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
-=======
                            FolderDetails details,
                            @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         String userId = getUserIdFromSessionHeader(userAgentHeader);
         FolderDetails resp = controller.update(userId, folderId, details);
         return super.respond(Response.Status.OK, resp);
@@ -118,13 +101,8 @@ public class FolderResource extends RestResource {
     @DELETE
     @Path("/{id}")
     public FolderDetails deleteFolder(@PathParam("id") long folderId,
-<<<<<<< HEAD
-            @QueryParam("type") String folderType,
-            @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
-=======
                                       @QueryParam("type") String folderType,
                                       @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         String userId = getUserIdFromSessionHeader(userAgentHeader);
         FolderType type = FolderType.valueOf(folderType);
         return controller.delete(userId, folderId, type);
@@ -161,21 +139,12 @@ public class FolderResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/entries")
     public FolderDetails read(@Context UriInfo uriInfo,
-<<<<<<< HEAD
-            @PathParam("id") String folderId,
-            @DefaultValue("0") @QueryParam("offset") int offset,
-            @DefaultValue("15") @QueryParam("limit") int limit,
-            @DefaultValue("created") @QueryParam("sort") String sort,
-            @DefaultValue("false") @QueryParam("asc") boolean asc,
-            @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
-=======
                               @PathParam("id") String folderId,
                               @DefaultValue("0") @QueryParam("offset") int offset,
                               @DefaultValue("15") @QueryParam("limit") int limit,
                               @DefaultValue("created") @QueryParam("sort") String sort,
                               @DefaultValue("false") @QueryParam("asc") boolean asc,
                               @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
 
         ColumnField field = ColumnField.valueOf(sort.toUpperCase());
 
@@ -201,11 +170,7 @@ public class FolderResource extends RestResource {
         switch (folderId) {
             case "personal":
                 List<PartData> entries = entryController.retrieveOwnerEntries(userId, userId, field,
-<<<<<<< HEAD
-                                                                              asc, offset, limit);
-=======
                         asc, offset, limit);
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
                 long count = entryController.getNumberOfOwnerEntries(userId, userId);
                 details.getEntries().addAll(entries);
                 details.setCount(count);
@@ -254,13 +219,8 @@ public class FolderResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/permissions")
     public FolderDetails setPermissions(@Context UriInfo info, @PathParam("id") long folderId,
-<<<<<<< HEAD
-            ArrayList<AccessPermission> permissions,
-            @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
-=======
                                         ArrayList<AccessPermission> permissions,
                                         @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         String userId = getUserIdFromSessionHeader(userAgentHeader);
         return permissionsController.setFolderPermissions(userId, folderId, permissions);
     }
@@ -269,13 +229,8 @@ public class FolderResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/permissions")
     public AccessPermission addPermission(@Context UriInfo info, @PathParam("id") long folderId,
-<<<<<<< HEAD
-            AccessPermission permission,
-            @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
-=======
                                           AccessPermission permission,
                                           @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         String userId = getUserIdFromSessionHeader(userAgentHeader);
         return controller.createFolderPermission(userId, folderId, permission);
     }
@@ -284,15 +239,9 @@ public class FolderResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/permissions/{permissionId}")
     public Response removePermission(@Context UriInfo info,
-<<<<<<< HEAD
-            @PathParam("id") long partId,
-            @PathParam("permissionId") long permissionId,
-            @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
-=======
                                      @PathParam("id") long partId,
                                      @PathParam("permissionId") long permissionId,
                                      @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         String userId = getUserIdFromSessionHeader(userAgentHeader);
         permissionsController.removeFolderPermission(userId, partId, permissionId);
         return Response.ok().build();
@@ -302,11 +251,7 @@ public class FolderResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/permissions/public")
     public Response enablePublicAccess(@Context UriInfo info, @PathParam("id") long folderId,
-<<<<<<< HEAD
-            @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
-=======
                                        @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         String userId = getUserIdFromSessionHeader(userAgentHeader);
         if (controller.enablePublicReadAccess(userId, folderId))
             return respond(Response.Status.OK);
@@ -317,11 +262,7 @@ public class FolderResource extends RestResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{id}/permissions/public")
     public Response disablePublicAccess(@Context UriInfo info, @PathParam("id") long folderId,
-<<<<<<< HEAD
-            @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
-=======
                                         @HeaderParam(value = "X-ICE-Authentication-SessionId") String userAgentHeader) {
->>>>>>> 3a93b296cacb68f217094cf7df86236a73cd323c
         String userId = getUserIdFromSessionHeader(userAgentHeader);
         if (controller.disablePublicReadAccess(userId, folderId))
             return respond(Response.Status.OK);
