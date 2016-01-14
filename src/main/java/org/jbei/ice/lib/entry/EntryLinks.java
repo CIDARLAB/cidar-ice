@@ -1,11 +1,11 @@
 package org.jbei.ice.lib.entry;
 
 import org.jbei.ice.lib.common.logging.Logger;
-import org.jbei.ice.lib.dao.DAOFactory;
-import org.jbei.ice.lib.dao.hibernate.EntryDAO;
 import org.jbei.ice.lib.dto.entry.EntryType;
 import org.jbei.ice.lib.dto.entry.PartData;
-import org.jbei.ice.lib.entry.model.Entry;
+import org.jbei.ice.storage.DAOFactory;
+import org.jbei.ice.storage.hibernate.dao.EntryDAO;
+import org.jbei.ice.storage.model.Entry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +55,9 @@ public class EntryLinks {
             return false;
         }
 
+        if (linkedEntry.getId() == this.entry.getId())
+            throw new IllegalArgumentException("Cannot link and entry to itself");
+
         entryAuthorization.expectWrite(userId, linkedEntry);
         entryAuthorization.expectWrite(userId, entry);
 
@@ -67,6 +70,27 @@ public class EntryLinks {
             case CHILD:
             default:
                 return addChildEntry(linkedEntry);
+        }
+    }
+
+    /**
+     * Removes link specified entry id based on the specified type
+     *
+     * @param partToRemove unique identifier for part to remove
+     * @param linkType     type of relationship that exists
+     * @return true, if entry is removed successfully.
+     */
+    public boolean removeLink(long partToRemove, LinkType linkType) {
+        entryAuthorization.expectWrite(userId, entry);
+        Entry linkedEntry = entryDAO.get(partToRemove);
+
+        switch (linkType) {
+            case PARENT:
+                return linkedEntry.getLinkedEntries().remove(entry) && entryDAO.update(linkedEntry) != null;
+
+            case CHILD:
+            default:
+                return entry.getLinkedEntries().remove(linkedEntry) && entryDAO.update(entry) != null;
         }
     }
 

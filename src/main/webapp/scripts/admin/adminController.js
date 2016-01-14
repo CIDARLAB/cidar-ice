@@ -1,28 +1,8 @@
 'use strict';
 
 angular.module('ice.admin.controller', [])
-    .controller('AdminController', function ($rootScope, $location, $scope, $stateParams, $cookieStore, Settings) {
-        var generalSettingKeys = [
-            'TEMPORARY_DIRECTORY',
-            'DATA_DIRECTORY',
-            'PROJECT_NAME',
-            'PART_NUMBER_DIGITAL_SUFFIX',
-            'PART_NUMBER_DELIMITER',
-            'NEW_REGISTRATION_ALLOWED',
-            'PROFILE_EDIT_ALLOWED',
-            'PASSWORD_CHANGE_ALLOWED',
-            'PART_NUMBER_PREFIX',
-            'URI_PREFIX',
-            'BLAST_INSTALL_DIR'
-        ];
-
-        var emailSettingKeys = [
-            'SMTP_HOST',
-            'ADMIN_EMAIL',
-            'BULK_UPLOAD_APPROVER_EMAIL',
-            'SEND_EMAIL_ON_ERRORS',
-            'ERROR_EMAIL_EXCEPTION_PREFIX'
-        ];
+    .controller('AdminController', function ($rootScope, $location, $scope, $stateParams, $cookieStore, Settings,
+                                             AdminSettings) {
 
         // retrieve general setting
         $scope.getSetting = function () {
@@ -38,7 +18,7 @@ angular.module('ice.admin.controller', [])
             settings.get(function (result) {
 
                 angular.forEach(result, function (setting) {
-                    if (generalSettingKeys.indexOf(setting.key) != -1) {
+                    if (AdminSettings.generalSettingKeys().indexOf(setting.key) != -1) {
                         $scope.generalSettings.push({
                             'key': (setting.key.replace(/_/g, ' ')).toLowerCase(),
                             'value': setting.value,
@@ -47,7 +27,7 @@ angular.module('ice.admin.controller', [])
                         });
                     }
 
-                    if (emailSettingKeys.indexOf(setting.key) != -1) {
+                    if (AdminSettings.getEmailKeys().indexOf(setting.key) != -1) {
                         $scope.emailSettings.push({
                             'key': (setting.key.replace(/_/g, ' ')).toLowerCase(),
                             'value': setting.value,
@@ -61,7 +41,7 @@ angular.module('ice.admin.controller', [])
 
         var menuOption = $stateParams.option;
 
-        var menuOptions = $scope.profileMenuOptions = [
+        var menuOptions = $scope.adminMenuOptions = [
             {url: 'scripts/admin/settings.html', display: 'Settings', selected: true, icon: 'fa-cogs'},
             {
                 id: 'web',
@@ -71,7 +51,13 @@ angular.module('ice.admin.controller', [])
                 icon: 'fa-globe'
             },
             {id: 'users', url: 'scripts/admin/users.html', display: 'Users', selected: false, icon: 'fa-user'},
-            {id: 'groups', url: 'scripts/admin/groups.html', display: 'Groups', selected: false, icon: 'fa-group'},
+            {
+                id: 'groups',
+                url: 'scripts/admin/groups.html',
+                display: 'Public Groups',
+                selected: false,
+                icon: 'fa-group'
+            },
             {
                 id: 'transferred', url: 'scripts/admin/transferred.html', display: 'Transferred Entries',
                 selected: false, icon: 'fa-list'
@@ -79,6 +65,13 @@ angular.module('ice.admin.controller', [])
             {
                 id: 'samples', url: 'scripts/admin/sample-requests.html', display: 'Sample Requests', selected: false,
                 icon: 'fa-shopping-cart'
+            },
+            {
+                id: 'api-keys',
+                url: 'scripts/admin/all-api-keys.html',
+                display: 'API Keys',
+                selected: false,
+                icon: 'fa-key'
             }
         ];
 
@@ -151,7 +144,8 @@ angular.module('ice.admin.controller', [])
             $scope.submitSetting(booleanSetting);
         }
     })
-    .controller('AdminTransferredEntriesController', function ($rootScope, $cookieStore, $filter, $location, $scope, Folders, Entry, Util) {
+    .controller('AdminTransferredEntriesController', function ($rootScope, $cookieStore, $filter, $location, $scope,
+                                                               Folders, Entry, Util) {
         $scope.maxSize = 5;
         $scope.currentPage = 1;
         $scope.selectedTransferredEntries = [];
@@ -162,13 +156,12 @@ angular.module('ice.admin.controller', [])
         $scope.transferredEntries = undefined;
 
         var getTransferredEntries = function () {
-            Folders().folder(params, function (result) {
+            Util.get("rest/collections/TRANSFERRED/entries", function (result) {
                 $scope.transferredEntries = result;
                 $scope.selectedTransferredEntries = [];
-            }, function (error) {
-                console.error(error);
-            });
+            }, params);
         };
+
         getTransferredEntries();
 
         $scope.setPage = function (pageNo) {
@@ -177,14 +170,7 @@ angular.module('ice.admin.controller', [])
 
             $scope.loadingPage = true;
             params.offset = (pageNo - 1) * 15;
-            Folders().folder(params, function (result) {
-                $scope.transferredEntries = result;
-                $scope.loadingPage = false;
-            }, function (error) {
-                console.error(error);
-                $scope.transferredEntries = undefined;
-                $scope.loadingPage = false;
-            })
+            getTransferredEntries();
         };
 
         $scope.acceptEntries = function () {
@@ -250,11 +236,15 @@ angular.module('ice.admin.controller', [])
 
         var samples = Samples($cookieStore.get("sessionId"));
         $scope.maxSize = 5;
-        $scope.params = {sort: 'requested', asc: false, currentPage: 1, status: 'ALL'};
+        $scope.params = {sort: 'requested', asc: false, currentPage: 1, status: undefined};
 
         $scope.requestSamples = function () {
             $scope.loadingPage = true;
-            samples.requests($scope.params, function (result) {
+            var params = angular.copy($scope.params);
+            if (params.status == 'ALL')
+                params.status = undefined;
+
+            samples.requests(params, function (result) {
                 $scope.sampleRequests = result;
                 $scope.loadingPage = false;
                 $scope.indexStart = ($scope.currentPage - 1) * 15;
@@ -304,41 +294,70 @@ angular.module('ice.admin.controller', [])
                 $scope.params.asc = false;
 
             $scope.params.sort = field;
-            requestSamples();
+            $scope.requestSamples();
         };
     })
     .controller('AdminUserController', function ($rootScope, $scope, $stateParams, $cookieStore, User) {
         $scope.maxSize = 5;
         $scope.currentPage = 1;
-        $scope.newProfile = undefined;
+        $scope.newProfile = {show: false};
+        $scope.userListParams = {sort: 'lastName', asc: true, currentPage: 1, status: undefined};
 
         var user = User($cookieStore.get("sessionId"));
         var getUsers = function () {
-            user.list(function (result) {
-                $scope.userList = result;
-            });
-        };
-
-        getUsers();
-
-        $scope.setUserListPage = function (pageNo) {
-            if (pageNo == undefined || isNaN(pageNo))
-                pageNo = 1;
-
             $scope.loadingPage = true;
-            var offset = (pageNo - 1) * 15;
-            user.list({offset: offset}, function (result) {
+            user.list($scope.userListParams, function (result) {
                 $scope.userList = result;
+                $scope.loadingPage = false;
+            }, function (error) {
                 $scope.loadingPage = false;
             });
         };
 
-        $scope.createProfile = function () {
-            user.createUser($scope.newProfile, function (result) {
-                $scope.showCreateProfile = false;
-                getUsers();
-            }, function (error) {
+        getUsers();
+        $scope.userListPageChanged = function () {
+            $scope.loadingPage = true;
+            $scope.userListParams.offset = ($scope.userListParams.currentPage - 1) * 15;
+            getUsers();
+        };
 
+        $scope.createProfile = function () {
+            $scope.newProfile.sendEmail = false;
+            user.createUser($scope.newProfile, function (result) {
+                $scope.newProfile.password = result.password;
+                getUsers();
             })
+        };
+
+        $scope.setUserAccountType = function (userItem, accountType) {
+            if (!accountType)
+                accountType = 'NORMAL';
+
+            var userCopy = angular.copy(userItem);
+            userCopy.accountType = accountType;
+
+            user.update({userId: userItem.id}, userCopy, function (result) {
+                userItem.accountType = result.accountType;
+                userItem.isAdmin = result.isAdmin;
+            }, function (error) {
+                console.log(error);
+            });
+        };
+
+        $scope.filterChanged = function () {
+            getUsers();
         }
+    })
+    .controller('AdminApiKeysController', function ($scope, Util) {
+        $scope.apiKeys = undefined;
+
+        // retrieve existing api keys for current user
+        $scope.retrieveKeys = function () {
+            Util.get("rest/api-keys", function (result) {
+                $scope.apiKeys = result.data;
+            }, {getAll: true});
+        };
+
+        // init
+        $scope.retrieveKeys();
     });

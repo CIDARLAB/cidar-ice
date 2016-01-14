@@ -1,35 +1,29 @@
 package org.jbei.ice.lib.bulkupload;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.jbei.ice.ApplicationController;
-import org.jbei.ice.lib.access.Permission;
+import org.apache.commons.lang3.StringUtils;
+import org.jbei.ice.lib.access.PermissionException;
 import org.jbei.ice.lib.account.AccountController;
-import org.jbei.ice.lib.account.model.Account;
 import org.jbei.ice.lib.common.logging.Logger;
-import org.jbei.ice.lib.dao.DAOFactory;
-import org.jbei.ice.lib.dao.hibernate.BulkUploadDAO;
-import org.jbei.ice.lib.dao.hibernate.EntryDAO;
 import org.jbei.ice.lib.dto.ConfigurationKey;
+import org.jbei.ice.lib.dto.DNASequence;
 import org.jbei.ice.lib.dto.bulkupload.EditMode;
 import org.jbei.ice.lib.dto.bulkupload.EntryField;
 import org.jbei.ice.lib.dto.entry.EntryType;
 import org.jbei.ice.lib.dto.entry.PartData;
 import org.jbei.ice.lib.dto.entry.Visibility;
 import org.jbei.ice.lib.dto.sample.PartSample;
-import org.jbei.ice.lib.entry.EntryController;
-import org.jbei.ice.lib.entry.EntryCreator;
-import org.jbei.ice.lib.entry.EntryEditor;
-import org.jbei.ice.lib.entry.EntryFactory;
-import org.jbei.ice.lib.entry.attachment.Attachment;
-import org.jbei.ice.lib.entry.model.Entry;
-import org.jbei.ice.lib.entry.model.Strain;
+import org.jbei.ice.lib.entry.*;
 import org.jbei.ice.lib.entry.sample.SampleService;
 import org.jbei.ice.lib.entry.sequence.SequenceController;
-import org.jbei.ice.lib.models.Sequence;
+import org.jbei.ice.lib.search.blast.BlastPlus;
+import org.jbei.ice.lib.utils.Emailer;
 import org.jbei.ice.lib.utils.Utils;
-import org.jbei.ice.lib.vo.DNASequence;
 import org.jbei.ice.servlet.InfoToModelFactory;
+import org.jbei.ice.storage.DAOFactory;
+import org.jbei.ice.storage.hibernate.dao.BulkUploadDAO;
+import org.jbei.ice.storage.hibernate.dao.EntryDAO;
+import org.jbei.ice.storage.model.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -209,7 +203,7 @@ public class BulkEntryCreator {
         return data;
     }
 
-    public BulkUploadInfo updateStatus(String userId, long id, BulkUploadStatus status) {
+    public ProcessedBulkUpload updateStatus(String userId, long id, BulkUploadStatus status) {
         if (status == null)
             return null;
 
@@ -219,11 +213,13 @@ public class BulkEntryCreator {
             return null;
 
         authorization.expectWrite(userId, upload);
+        ProcessedBulkUpload processedBulkUpload = new ProcessedBulkUpload();
+        processedBulkUpload.setUploadId(id);
 
         switch (status) {
             case PENDING_APPROVAL:
             default:
-                return controller.submitBulkImportDraft(userId, id);
+                return submitBulkImportDraft(userId, upload, processedBulkUpload);
 
             // rejected by admin
             case IN_PROGRESS:
@@ -240,20 +236,61 @@ public class BulkEntryCreator {
                 Date updateTime = new Date(System.currentTimeMillis());
                 upload.setLastUpdateTime(updateTime);
                 upload.setStatus(status);
-                return dao.update(upload).toDataTransferObject();
+                return processedBulkUpload;
 
             // approved by an administrator
             case APPROVED:
                 if (new BulkUploadController().approveBulkImport(userId, id))
-                    return upload.toDataTransferObject();
+                    return processedBulkUpload;
                 return null;
 
             case BULK_EDIT:
                 upload.getContents().clear();
                 dao.delete(upload);
-                return upload.toDataTransferObject();
+                return processedBulkUpload;
         }
     }
+
+    /**
+     * Submits a bulk import that has been saved. This action is restricted to the owner of the
+     * draft or to administrators.
+     */
+    protected ProcessedBulkUpload submitBulkImportDraft(String userId, BulkUpload draft,
+                                                        ProcessedBulkUpload processedBulkUpload) throws PermissionException {
+        // validate entries
+        BulkUploadValidation validation = new BulkUploadValidation(draft);
+        if (!validation.isValid()) {
+            processedBulkUpload.setSuccess(false);
+            for (EntryField entryField : validation.getFailedFields()) {
+                processedBulkUpload.getHeaders().add(new EntryHeaderValue(false, entryField));
+            }
+            processedBulkUpload.setUserMessage("Cannot submit your bulk upload due to a validation failure");
+            return processedBulkUpload;
+        }
+
+        draft.setStatus(BulkUploadStatus.PENDING_APPROVAL);
+        draft.setLastUpdateTime(new Date());
+        draft.setName(userId);
+
+        BulkUpload bulkUpload = dao.update(draft);
+        if (bulkUpload != null) {
+            // convert entries to pending
+            dao.setEntryStatus(bulkUpload, Visibility.PENDING);
+
+            String email = Utils.getConfigValue(ConfigurationKey.BULK_UPLOAD_APPROVER_EMAIL);
+            if (email != null && !email.isEmpty()) {
+                String subject = Utils.getConfigValue(ConfigurationKey.PROJECT_NAME) + " Bulk Upload Notification";
+                String body = "A bulk upload has been submitted and is pending verification.\n\n";
+                body += "Please login to the registry at:\n\n";
+                body += Utils.getConfigValue(ConfigurationKey.URI_PREFIX);
+                body += "\n\nand use the \"Pending Approval\" menu item to approve it\n\nThanks.";
+                Emailer.send(email, subject, body);
+            }
+            return processedBulkUpload;
+        }
+        return null;
+    }
+
 
     /**
      * Renames the bulk upload referenced by the id in the parameter
@@ -350,13 +387,14 @@ public class BulkEntryCreator {
                 entry.setVisibility(Visibility.DRAFT.getValue());
         }
 
-        EntryEditor editor = new EntryEditor();
-        // set the plasmids and update
-        if (entry.getRecordType().equalsIgnoreCase(EntryType.STRAIN.toString())
-                && entry.getLinkedEntries().isEmpty()) {
-            Strain strain = (Strain) entry;
-            editor.setStrainPlasmids(account, strain, strain.getPlasmids());
-        }
+        // todo : que?
+//        EntryEditor editor = new EntryEditor();
+//        // set the plasmids and update
+//        if (entry.getRecordType().equalsIgnoreCase(EntryType.STRAIN.toString())
+//                && entry.getLinkedEntries().isEmpty()) {
+//            Strain strain = (Strain) entry;
+//            editor.setStrainPlasmids(account, strain, strain.getPlasmids());
+//        }
 
         entryController.update(userId, entry);
 
@@ -419,6 +457,7 @@ public class BulkEntryCreator {
         // check permissions
         authorization.expectWrite(userId, draft);
         SampleService sampleService = new SampleService();
+        EntryAuthorization entryAuthorization = new EntryAuthorization();
 
         for (PartWithSample partWithSample : data) {
             if (partWithSample == null)
@@ -441,27 +480,41 @@ public class BulkEntryCreator {
             if (partData.getLinkedParts() != null && partData.getLinkedParts().size() > 0) {
                 // create linked
                 PartData linked = partData.getLinkedParts().get(0);
-                Entry linkedEntry = InfoToModelFactory.infoToEntry(linked);
-                if (linkedEntry != null) {
-                    linkedEntry.setVisibility(Visibility.DRAFT.getValue());
-                    linkedEntry.setOwner(account.getFullName());
-                    linkedEntry.setOwnerEmail(account.getEmail());
-                    linkedEntry = entryDAO.create(linkedEntry);
 
-                    linked.setId(linkedEntry.getId());
-                    linked.setModificationTime(linkedEntry.getModificationTime().getTime());
+                // for existing the link already....exists so just verify
+                if (linked.getId() == 0) {
+                    Entry linkedEntry = InfoToModelFactory.infoToEntry(linked);
+                    if (linkedEntry != null) {
+                        linkedEntry.setVisibility(Visibility.DRAFT.getValue());
+                        linkedEntry.setOwner(account.getFullName());
+                        linkedEntry.setOwnerEmail(account.getEmail());
+                        linkedEntry = entryDAO.create(linkedEntry);
 
-                    addWritePermission(account, linkedEntry);
+                        linked.setId(linkedEntry.getId());
+                        linked.setModificationTime(linkedEntry.getModificationTime().getTime());
 
-                    // check for attachments and sequences for linked entry
-                    saveFiles(linked, linkedEntry, files);
+                        addWritePermission(account, linkedEntry);
 
-                    // link to main entry in the database
-                    entry.getLinkedEntries().add(linkedEntry);
+                        // check for attachments and sequences for linked entry
+                        saveFiles(linked, linkedEntry, files);
+                        entry.getLinkedEntries().add(linkedEntry);
+                    }
                 }
+
+                entry = entryDAO.create(entry);
+
+                // attempt to get linked entry and add
+                if (linked.getId() != 0) {
+                    Entry linkedEntry = entryDAO.get(linked.getId());
+                    if (linkedEntry != null && entryAuthorization.canWriteThoroughCheck(userId, entry)) {
+                        EntryLinks links = new EntryLinks(userId, entry.getId());
+                        links.addLink(linked, LinkType.CHILD);
+                    }
+                }
+            } else {
+                entry = entryDAO.create(entry);
             }
 
-            entry = entryDAO.create(entry);
             // check for pi
             String piEmail = entry.getPrincipalInvestigatorEmail();
             if (StringUtils.isNotEmpty(piEmail)) {
@@ -510,7 +563,7 @@ public class BulkEntryCreator {
                     sequence.setFileName(sequenceName);
                     Sequence result = DAOFactory.getSequenceDAO().saveSequence(sequence);
                     if (result != null)
-                        ApplicationController.scheduleBlastIndexRebuildTask(true);
+                        BlastPlus.scheduleBlastIndexRebuildTask(true);
                 }
             }
         } catch (IOException e) {

@@ -1,6 +1,64 @@
 'use strict';
 
 angular.module('ice.profile.controller', [])
+    .controller('MessageController', function ($scope, $location, $cookieStore, $stateParams, Message) {
+        var message = Message($cookieStore.get('sessionId'));
+        var profileId = $stateParams.id;
+        $location.path("profile/" + profileId + "/messages", false);
+        message.query(function (result) {
+            $scope.messages = result;
+        });
+    })
+    .controller('ApiKeysController', function ($scope, $uibModal, Util) {
+        $scope.apiKeys = undefined;
+
+        // retrieve existing api keys for current user
+        $scope.retrieveProfileApiKeys = function () {
+            Util.get("rest/api-keys", function (result) {
+                $scope.apiKeys = result.data;
+            });
+        };
+
+        $scope.retrieveProfileApiKeys();
+
+        $scope.openApiKeyRequest = function () {
+            var modalInstance = $uibModal.open({
+                templateUrl: 'scripts/profile/modal/api-key-request.html',
+                controller: 'GenerateApiKeyController'
+            })
+        };
+
+        $scope.deleteAPIKey = function (key) {
+            Util.remove("rest/api-keys/" + key.id, key, function (result) {
+                var idx = $scope.apiKeys.indexOf(key);
+                if (idx >= 0)
+                    $scope.apiKeys.splice(idx, 1);
+            });
+        }
+    })
+    .controller('GenerateApiKeyController', function ($scope, $uibModalInstance, Util) {
+        $scope.apiKey = undefined;
+        $scope.clientIdValidationError = undefined;
+        $scope.errorCreatingKey = undefined;
+        $scope.client = {};
+
+        $scope.cancel = function () {
+            $uibModalInstance.dismiss('cancel');
+        };
+
+        $scope.generateToken = function () {
+            console.log($scope.client);
+            if (!$scope.client.id) {
+                $scope.clientIdValidationError = true;
+                return;
+            }
+
+            var queryParams = {client_id: $scope.client.id};
+            Util.post("/rest/api-keys", null, function (result) {
+                $scope.apiKey = result;
+            }, queryParams);
+        }
+    })
     .controller('ProfileEntryController', function ($scope, $location, $cookieStore, $stateParams, User, Entry) {
         var user = User($cookieStore.get("sessionId"));
         var profileId = $stateParams.id;
@@ -27,7 +85,7 @@ angular.module('ice.profile.controller', [])
             });
         };
 
-        $scope.profileEntryPopupTemplate = "views/folder/template.html";
+        $scope.profileEntryPopupTemplate = "scripts/folder/template.html";
 
         $scope.tooltipDetails = function (entry) {
             $scope.currentTooltip = undefined;
@@ -52,7 +110,7 @@ angular.module('ice.profile.controller', [])
             });
         };
     })
-    .controller('ProfileController', function ($scope, $location, $cookieStore, $rootScope, $stateParams, User, Settings) {
+    .controller('ProfileController', function ($scope, $location, $cookieStore, $rootScope, $stateParams, User, Util) {
         $scope.showChangePassword = false;
         $scope.showEditProfile = false;
         $scope.showSendMessage = false;
@@ -60,49 +118,20 @@ angular.module('ice.profile.controller', [])
         $scope.passwordChangeAllowed = false;
 
         // get settings
-        Settings().getSetting({key: 'PASSWORD_CHANGE_ALLOWED'}, function (result) {
-            $scope.passwordChangeAllowed = (result.value == 'yes');
+        Util.get("rest/config/PASSWORD_CHANGE_ALLOWED", function (result) {
+            $scope.passwordChangeAllowed = (result.value.toLowerCase() === 'yes');
         });
 
         $scope.preferenceEntryDefaults = [
             {display: "Principal Investigator", id: "PRINCIPAL_INVESTIGATOR", help: "Enter Email or Name"},
             {display: "Funding Source", id: "FUNDING_SOURCE"}
         ];
-        $scope.searchPreferenceDefaults = [
-            {display: "Alias", id: "alias"},
-            {display: "Backbone", id: "backbone"},
-            {display: "Keywords", id: "keywords"},
-            {display: "Name", id: "name"},
-            {display: "Part ID", id: "partId"},
-            {display: "Summary", id: "summary"}
-        ];
-
-        $scope.handleSliderChange = function (model) {
-            console.log("handleSliderChange", model);
-        };
-
-        $scope.translate = function (value) {
-            switch (value) {
-                case "1":
-                default:
-                    return "default";
-                case "2":
-                    return "low";
-                case "3":
-                    return "medium";
-                case "4":
-                    return "high";
-                case "5":
-                    return "very high";
-            }
-        };
 
         $scope.preferences = {};
-        $scope.searchPreferences = {};
 
         var user = User($cookieStore.get('sessionId'));
         var profileOption = $stateParams.option;
-        var profileId = $stateParams.id;
+        var profileId = $scope.userId = $stateParams.id;
 
         $scope.savePreference = function (pref) {
             if (!$scope.preferences[pref.id]) {
@@ -127,11 +156,17 @@ angular.module('ice.profile.controller', [])
             {
                 id: 'prefs',
                 url: 'scripts/profile/preferences.html',
-                display: 'Preferences',
+                display: 'Settings',
                 selected: false,
                 icon: 'fa-cog'
             },
-            {id: 'groups', url: 'scripts/profile/groups.html', display: 'Groups', selected: false, icon: 'fa-group'},
+            {
+                id: 'groups',
+                url: 'scripts/profile/groups.html',
+                display: 'Private Groups',
+                selected: false,
+                icon: 'fa-group'
+            },
             {
                 id: 'messages',
                 url: 'scripts/profile/messages.html',
@@ -152,6 +187,14 @@ angular.module('ice.profile.controller', [])
                 display: 'Entries',
                 selected: false,
                 icon: 'fa-th-list',
+                open: true
+            },
+            {
+                id: 'api-keys',
+                url: 'scripts/profile/api-keys.html',
+                display: 'API Keys',
+                selected: false,
+                icon: 'fa-key',
                 open: true
             }
         ];
@@ -219,31 +262,30 @@ angular.module('ice.profile.controller', [])
 
         $scope.updatePassword = function () {
             var pass = $scope.changePass;
-            console.log(pass);
 
-            if (!$scope.changePass || $scope.changePass.current === undefined || !$scope.changePass.current.length) {
-                $scope.changePasswordError = "Please enter your current password";
-                $scope.currentError = true;
-                return;
-            }
+            //if (!$scope.changePass || $scope.changePass.current === undefined || !$scope.changePass.current.length) {
+            //    $scope.changePasswordError = "Please enter your current password";
+            //    $scope.currentError = true;
+            //    return;
+            //}
 
             // check new password value
             if (pass.new === undefined || pass.new.length === 0) {
-                $scope.changePasswordError = "Please enter a new password for your account";
+                $scope.changePasswordError = "Please enter a new password";
                 $scope.newPassError = true;
                 return;
             }
 
             // check for new password confirm value
             if (pass.new2 === undefined || pass.new2.length === 0) {
-                $scope.changePasswordError = "Please confirm the new password for your account";
+                $scope.changePasswordError = "Please confirm the new password";
                 $scope.newPass2Error = true;
                 return;
             }
 
             // check for matching password values
             if (pass.new2 !== pass.new) {
-                $scope.changePasswordError = "The password for your account does not match";
+                $scope.changePasswordError = "Passwords do not match";
                 $scope.newPassError = true;
                 $scope.newPass2Error = true;
                 return;
@@ -252,36 +294,21 @@ angular.module('ice.profile.controller', [])
             var user = User($cookieStore.get("sessionId"));
 
             // validate existing password
-            var userId = $cookieStore.get('userId');
             $scope.passwordChangeSuccess = undefined;
             $scope.changePasswordError = undefined;
 
-//        var userObj = {sessionId:$cookieStore.get("sessionId"), password:$scope.changePass.current, email:userId};
-
-            // authenticate new password
-//        user.resetPassword({}, userObj, function (result) {
-//            if (result == null) {
-//                $scope.changePasswordError = "Current password is invalid";
-//                $scope.currentError = true;
-//                return;
-//            }
-
-            user.changePassword({},
-                {email: userId, password: pass.new},
+            // server call
+            user.changePassword({userId: $stateParams.id}, {password: pass.new},
                 function (success) {
                     console.log("password change", success);
                     if (!success) {
-                        $scope.changePasswordError = "There was an error changing your password";
+                        $scope.changePasswordError = "There was an error changing the password";
                     } else {
                         $scope.passwordChangeSuccess = true;
                     }
                 }, function (error) {
                     $scope.changePasswordError = "There was an error changing your password";
                 });
-            //  change password
-//        }, function (error) {
-//            $scope.changePasswordError = "There was an error changing your password";
-//        });
         };
 
         $scope.updateProfile = function () {

@@ -4,8 +4,8 @@
 package org.jbei.ice.lib.account;
 
 import org.jbei.ice.lib.AccountCreator;
-import org.jbei.ice.lib.account.model.Account;
-import org.jbei.ice.lib.dao.hibernate.HibernateUtil;
+import org.jbei.ice.storage.hibernate.HibernateUtil;
+import org.jbei.ice.storage.model.Account;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -72,7 +72,7 @@ public class AccountControllerTest {
         Account account = AccountCreator.createTestAccount("testUpdatePassword", false);
         AccountTransfer transfer = account.toDataTransferObject();
         transfer.setPassword("p455W0rd");
-        controller.updatePassword(account.getEmail(), transfer);
+        controller.updatePassword(account.getEmail(), transfer.getId(), transfer);
     }
 
     @Test
@@ -120,7 +120,7 @@ public class AccountControllerTest {
         Account account = AccountCreator.createTestAccount("testGetAccountBySessionKey", false);
         AccountTransfer transfer = account.toDataTransferObject();
         transfer.setPassword("p455W0rd");
-        controller.updatePassword(account.getEmail(), transfer);
+        controller.updatePassword(account.getEmail(), transfer.getId(), transfer);
         AccountTransfer info = controller.authenticate(new AccountTransfer(account.getEmail(), "p455W0rd"));
         Assert.assertNotNull(info);
         Assert.assertFalse(info.getSessionId().isEmpty());

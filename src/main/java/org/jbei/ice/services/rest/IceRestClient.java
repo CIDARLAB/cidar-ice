@@ -1,16 +1,18 @@
 package org.jbei.ice.services.rest;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.jbei.ice.lib.common.logging.Logger;
+import org.jbei.ice.lib.dto.ConfigurationKey;
 import org.jbei.ice.lib.dto.entry.EntryType;
+import org.jbei.ice.lib.utils.Utils;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -21,6 +23,10 @@ import java.util.Map;
 public class IceRestClient extends RestClient {
 
     private static IceRestClient INSTANCE = new IceRestClient();
+    //    protected final String API_KEY_TOKEN = "X-ICE-API-Token";               // token for validation
+    protected final String API_KEY_CLIENT_ID = "X-ICE-API-Token-Client";    // client id (also url)
+    protected final String WOR_API_KEY_TOKEN = "X-ICE-WOR-Token";           // web of registries api key
+
     private Client client;
 
     public static IceRestClient getInstance() {
@@ -36,12 +42,13 @@ public class IceRestClient extends RestClient {
         client = ClientBuilder.newClient(clientConfig);
     }
 
-    public Object get(String url, String path, Class<?> clazz) {
+    public <T> T get(String url, String path, Class<T> clazz) {
         WebTarget target = client.target("https://" + url).path(path);
         return target.request(MediaType.APPLICATION_JSON_TYPE).buildGet().invoke(clazz);
     }
 
-    public Object get(String url, String path, Class<?> clazz, HashMap<String, Object> queryParams) {
+    @Override
+    public <T> T get(String url, String path, Class<T> clazz, Map<String, Object> queryParams) {
         WebTarget target = client.target("https://" + url).path(path);
         if (queryParams != null) {
             for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
@@ -56,7 +63,8 @@ public class IceRestClient extends RestClient {
         return target.request(MediaType.APPLICATION_JSON_TYPE).buildGet().invoke();
     }
 
-    public Object post(String url, String resourcePath, Object object, Class<?> responseClass) {
+    @Override
+    public <T> T post(String url, String resourcePath, Object object, Class<T> responseClass) {
         WebTarget target = client.target("https://" + url).path(resourcePath);
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON_TYPE);
         Response postResponse = invocationBuilder.post(Entity.entity(object, MediaType.APPLICATION_JSON_TYPE));
@@ -65,7 +73,7 @@ public class IceRestClient extends RestClient {
         return null;
     }
 
-    public Object put(String url, String resourcePath, Object object, Class<?> responseClass) {
+    public <T> T put(String url, String resourcePath, Object object, Class<T> responseClass) {
         WebTarget target = client.target("https://" + url).path(resourcePath);
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON_TYPE);
         Response putResponse = invocationBuilder.put(Entity.entity(object, MediaType.APPLICATION_JSON_TYPE));
@@ -89,7 +97,7 @@ public class IceRestClient extends RestClient {
     public boolean delete(String token, String url, String resourcePath) {
         WebTarget target = client.target("https://" + url).path(resourcePath);
         Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON_TYPE);
-        invocationBuilder = invocationBuilder.header(WOR_PARTNER_TOKEN_HEADER, token);
+        setHeaders(invocationBuilder, token);
         Response response = invocationBuilder.delete();
         return response.getStatus() == Response.Status.OK.getStatusCode();
     }
@@ -102,5 +110,27 @@ public class IceRestClient extends RestClient {
         multiPart.field("entryRecordId", recordId);
         multiPart.field("entryType", entryType.name());
         return invocationBuilder.post(Entity.entity(multiPart, MediaType.MULTIPART_FORM_DATA_TYPE));
+    }
+
+    // WOR
+    public <T> T getWor(String url, String path, Class<T> clazz, Map<String, Object> queryParams, String token) {
+        WebTarget target = client.target("https://" + url).path(path);
+        if (queryParams != null) {
+            for (Map.Entry<String, Object> entry : queryParams.entrySet()) {
+                target = target.queryParam(entry.getKey(), entry.getValue());
+            }
+        }
+        Invocation.Builder invocationBuilder = target.request(MediaType.APPLICATION_JSON_TYPE);
+        setHeaders(invocationBuilder, token);
+        return invocationBuilder.buildGet().invoke(clazz);
+    }
+
+    protected void setHeaders(Invocation.Builder invocationBuilder, String token) {
+        invocationBuilder.header(WOR_API_KEY_TOKEN, token);
+
+        String clientId = Utils.getConfigValue(ConfigurationKey.URI_PREFIX);
+        if (!StringUtils.isEmpty(clientId)) {
+            invocationBuilder.header(API_KEY_CLIENT_ID, clientId);
+        }
     }
 }

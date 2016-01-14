@@ -1,35 +1,28 @@
 package org.jbei.ice.lib.bulkupload;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.jbei.ice.ControllerException;
-import org.jbei.ice.lib.access.Permission;
+import org.apache.commons.lang3.StringUtils;
 import org.jbei.ice.lib.access.PermissionException;
 import org.jbei.ice.lib.access.PermissionsController;
 import org.jbei.ice.lib.account.AccountController;
 import org.jbei.ice.lib.account.AccountTransfer;
-import org.jbei.ice.lib.account.model.Account;
 import org.jbei.ice.lib.common.logging.Logger;
-import org.jbei.ice.lib.dao.DAOFactory;
-import org.jbei.ice.lib.dao.hibernate.BulkUploadDAO;
-import org.jbei.ice.lib.dao.hibernate.EntryDAO;
-import org.jbei.ice.lib.dao.hibernate.SequenceDAO;
 import org.jbei.ice.lib.dto.ConfigurationKey;
+import org.jbei.ice.lib.dto.DNASequence;
 import org.jbei.ice.lib.dto.entry.*;
 import org.jbei.ice.lib.dto.permission.AccessPermission;
 import org.jbei.ice.lib.entry.EntryController;
-import org.jbei.ice.lib.entry.attachment.Attachment;
 import org.jbei.ice.lib.entry.attachment.AttachmentController;
-import org.jbei.ice.lib.entry.model.Entry;
 import org.jbei.ice.lib.entry.sequence.SequenceController;
 import org.jbei.ice.lib.executor.IceExecutorService;
-import org.jbei.ice.lib.group.Group;
 import org.jbei.ice.lib.group.GroupController;
-import org.jbei.ice.lib.models.Sequence;
-import org.jbei.ice.lib.utils.Emailer;
 import org.jbei.ice.lib.utils.Utils;
-import org.jbei.ice.lib.vo.DNASequence;
-import org.jbei.ice.servlet.ModelToInfoFactory;
+import org.jbei.ice.storage.DAOFactory;
+import org.jbei.ice.storage.ModelToInfoFactory;
+import org.jbei.ice.storage.hibernate.dao.BulkUploadDAO;
+import org.jbei.ice.storage.hibernate.dao.EntryDAO;
+import org.jbei.ice.storage.hibernate.dao.SequenceDAO;
+import org.jbei.ice.storage.model.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -323,67 +316,8 @@ public class BulkUploadController {
         return creator.createOrUpdateEntry(userId, autoUpdate, addType);
     }
 
-    /**
-     * Submits a bulk import that has been saved. This action is restricted to the owner of the
-     * draft or to administrators.
-     *
-     * @param userId  Account identifier of user performing save
-     * @param draftId unique identifier for saved bulk import
-     * @return true, if draft was sa
-     */
-    public BulkUploadInfo submitBulkImportDraft(String userId, long draftId) throws PermissionException {
-        // retrieve draft
-        BulkUpload draft = dao.get(draftId);
-        if (draft == null)
-            return null;
 
-        // check permissions
-        authorization.expectWrite(userId, draft);
-        BulkUploadValidation validation = new BulkUploadValidation(draft);
-        if (!validation.isValid()) {
-            Logger.warn("Attempting to submit a bulk upload draft (" + draftId + ") which does not validate");
-            Logger.warn("Invalid Fields for (" + draftId + "): " + StringUtils.join(validation.getFailedFields().iterator(), ","));
-            return null;
-        }
-
-        draft.setStatus(BulkUploadStatus.PENDING_APPROVAL);
-        draft.setLastUpdateTime(new Date());
-        draft.setName(userId);
-
-        BulkUpload bulkUpload = dao.update(draft);
-        if (bulkUpload != null) {
-            // convert entries to pending
-            ArrayList<Long> list = dao.getEntryIds(bulkUpload);
-            for (Number l : list) {
-                Entry entry = entryDAO.get(l.longValue());
-                if (entry == null)
-                    continue;
-
-                entry.setVisibility(Visibility.PENDING.getValue());
-                entryDAO.update(entry);
-
-                // if linked entries
-                for (Entry linked : entry.getLinkedEntries()) {
-                    linked.setVisibility(Visibility.PENDING.getValue());
-                    entryDAO.update(linked);
-                }
-            }
-
-            String email = Utils.getConfigValue(ConfigurationKey.BULK_UPLOAD_APPROVER_EMAIL);
-            if (email != null && !email.isEmpty()) {
-                String subject = Utils.getConfigValue(ConfigurationKey.PROJECT_NAME) + " Bulk Upload Notification";
-                String body = "A bulk upload has been submitted and is pending verification.\n\n";
-                body += "Please login to the registry at:\n\n";
-                body += Utils.getConfigValue(ConfigurationKey.URI_PREFIX);
-                body += "\n\nand use the \"Pending Approval\" menu item to approve it\n\nThanks.";
-                Emailer.send(email, subject, body);
-            }
-            return bulkUpload.toDataTransferObject();
-        }
-        return null;
-    }
-
-    public boolean revertSubmitted(Account account, long uploadId) throws ControllerException {
+    public boolean revertSubmitted(Account account, long uploadId) {
         boolean isAdmin = accountController.isAdministrator(account.getEmail());
         if (!isAdmin) {
             Logger.warn(account.getEmail() + " attempting to revert submitted bulk upload "
@@ -649,9 +583,6 @@ public class BulkUploadController {
             compatibleTypes.add(EntryType.PLASMID.getName());
 
         token = token.replaceAll("'", "");
-        for (Entry entry : DAOFactory.getEntryDAO().getMatchingEntryPartNumbers(token, limit, compatibleTypes)) {
-            dataList.add(entry.getPartNumber());
-        }
-        return dataList;
+        return new ArrayList<>(DAOFactory.getEntryDAO().getMatchingEntryPartNumbers(token, limit, compatibleTypes));
     }
 }

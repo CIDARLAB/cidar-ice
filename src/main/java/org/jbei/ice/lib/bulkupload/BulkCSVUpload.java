@@ -3,7 +3,7 @@ package org.jbei.ice.lib.bulkupload;
 import com.opencsv.CSVParser;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jbei.ice.lib.common.logging.Logger;
 import org.jbei.ice.lib.dto.StorageLocation;
 import org.jbei.ice.lib.dto.bulkupload.EntryField;
@@ -14,6 +14,8 @@ import org.jbei.ice.lib.dto.entry.PartData;
 import org.jbei.ice.lib.dto.sample.PartSample;
 import org.jbei.ice.lib.dto.sample.SampleType;
 import org.jbei.ice.lib.entry.EntryUtil;
+import org.jbei.ice.storage.DAOFactory;
+import org.jbei.ice.storage.model.Entry;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -38,6 +40,7 @@ public class BulkCSVUpload {
     protected final List<EntryField> headerFields;
     protected final List<EntryField> linkedHeaders;
     protected final List<EntryField> requiredFields;
+    protected final List<EntryField> invalidFields; // fields that failed validation
 
     public BulkCSVUpload(String userId, Path csvFilePath, EntryType addType) {
         this.addType = addType;
@@ -46,33 +49,50 @@ public class BulkCSVUpload {
         this.requiredFields = new LinkedList<>();
         this.headerFields = BulkCSVUploadHeaders.getHeadersForType(addType);
         this.linkedHeaders = new LinkedList<>();
+        this.invalidFields = new LinkedList<>();
     }
 
     /**
      * Processes the csv upload
      *
-     * @return id of created bulk upload or error message
-     * @throws IOException on error processing the file
+     * @return wrapper around id of created bulk upload or error message
      */
-    public final long processUpload() throws IOException {
+    public ProcessedBulkUpload processUpload() {
+        ProcessedBulkUpload processedBulkUpload = new ProcessedBulkUpload();
+
         try (FileInputStream inputStream = new FileInputStream(csvFilePath.toFile())) {
-            List<PartWithSample> updates = getBulkUploadDataFromFile(inputStream);
+            try {
+                List<PartWithSample> updates = getBulkUploadDataFromFile(inputStream);
 
-            // create actual entries
-            BulkEntryCreator creator = new BulkEntryCreator();
-            long uploadId = creator.createBulkUpload(userId, addType);
+                // create actual entries
+                BulkEntryCreator creator = new BulkEntryCreator();
+                long uploadId = creator.createBulkUpload(userId, addType);
 
-            // create entries
-            if (!creator.createEntries(userId, uploadId, updates, null)) {
-                String errorMsg = "Error creating entries for upload";
-                Logger.error(errorMsg);
-                throw new IOException(errorMsg);
-                //todo: delete upload id
+                // create entries
+                if (!creator.createEntries(userId, uploadId, updates, null)) {
+                    String errorMsg = "Error creating entries for upload";
+                    throw new IOException(errorMsg);
+                    //todo: delete upload id
+                }
+                processedBulkUpload.setUploadId(uploadId);
+            } catch (IOException e) {
+                // validation exception; convert entries to headers
+                processedBulkUpload.setSuccess(false);
+                processedBulkUpload.setUserMessage("Validation failed");
+                for (EntryField field : invalidFields) {
+                    processedBulkUpload.getHeaders().add(new EntryHeaderValue(false, field));
+                }
+                Logger.error(e);
+                return processedBulkUpload;
             }
-
-            return uploadId;
-
+        } catch (IOException e) {
+            // general server error
+            processedBulkUpload.setSuccess(false);
+            processedBulkUpload.setUserMessage("Server error processing upload.");
+            Logger.error(e);
         }
+
+        return processedBulkUpload;
     }
 
     EntryType detectSubType(String field) {
@@ -198,13 +218,13 @@ public class BulkCSVUpload {
                 for (int i = 0; i < valuesArray.length; i += 1) {
                     HeaderValue headerForColumn = headers.get(i);
 
+                    // process sample information
                     if (headerForColumn.isSampleField()) {
                         // todo : move to another method
                         if (partSample == null)
                             partSample = new PartSample();
                         setPartSampleData(((SampleHeaderValue) headerForColumn).getSampleField(),
                                 partSample, valuesArray[i]);
-
                     } else {
                         EntryHeaderValue entryHeaderValue = (EntryHeaderValue) headerForColumn;
                         EntryField field = entryHeaderValue.getEntryField();
@@ -236,6 +256,14 @@ public class BulkCSVUpload {
                                 // todo
                                 break;
 
+                            case EXISTING_PART_NUMBER:
+                                Entry entry = DAOFactory.getEntryDAO().getByPartNumber(value);
+                                if (entry == null)
+                                    throw new IOException("Could not locate part number \"" + value + "\" for linking");
+                                PartData toLink = entry.toDataTransferObject();
+                                data.getLinkedParts().add(toLink);
+                                break;
+
                             default:
                                 partData = EntryUtil.setPartDataFromField(partData, value, field, isSubType);
                         }
@@ -243,13 +271,11 @@ public class BulkCSVUpload {
                 }
 
                 // validate
-                List<EntryField> fields = validate(partData);
+                List<EntryField> fields = EntryUtil.validates(partData);
                 if (!fields.isEmpty()) {
-                    StringBuilder fieldsString = new StringBuilder();
-                    for (EntryField field : fields) {
-                        fieldsString.append("\n").append(field.getLabel());
-                    }
-                    throw new IOException("Missing required fields:\n" + fieldsString.toString());
+                    invalidFields.clear();
+                    invalidFields.addAll(fields);
+                    return null;
                 }
 
                 partData.setIndex(index);
@@ -262,10 +288,6 @@ public class BulkCSVUpload {
         }
 
         return partDataList;
-    }
-
-    protected List<EntryField> validate(PartData partData) {
-        return EntryUtil.validates(partData);
     }
 
     protected void setPartSampleData(SampleField sampleField, PartSample partSample, String data) {

@@ -1,14 +1,15 @@
 package org.jbei.ice.lib.dto.entry;
 
-import org.jbei.ice.lib.dao.DAOFactory;
-import org.jbei.ice.lib.dao.hibernate.EntryDAO;
-import org.jbei.ice.lib.dao.hibernate.ParameterDAO;
 import org.jbei.ice.lib.entry.EntryAuthorization;
-import org.jbei.ice.lib.entry.model.Entry;
-import org.jbei.ice.lib.entry.model.Parameter;
+import org.jbei.ice.storage.DAOFactory;
+import org.jbei.ice.storage.hibernate.dao.EntryDAO;
+import org.jbei.ice.storage.hibernate.dao.ParameterDAO;
+import org.jbei.ice.storage.model.Entry;
+import org.jbei.ice.storage.model.Parameter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Hector Plahar
@@ -23,7 +24,7 @@ public class CustomFields {
         this.dao = DAOFactory.getParameterDAO();
     }
 
-    public long createField(String userId, long partId, CustomField field) {
+    public CustomField createField(String userId, long partId, CustomField field) {
         EntryDAO entryDAO = DAOFactory.getEntryDAO();
 
         Entry entry = entryDAO.get(partId);
@@ -34,8 +35,7 @@ public class CustomFields {
         parameter.setKey(field.getName());
         parameter.setValue(field.getValue());
         entry.getParameters().add(parameter);
-        parameter = this.dao.create(parameter);
-        return parameter.getId();
+        return this.dao.create(parameter).toDataTransferObject();
     }
 
     public CustomField updateField(String userId, long id, CustomField customField) {
@@ -74,6 +74,20 @@ public class CustomFields {
             result.add(parameter.toDataTransferObject());
         }
         return result;
+    }
+
+    public List<PartData> getPartsByFields(String userId, List<CustomField> fields) {
+        // todo : performance
+        Set<Entry> entries = dao.filter(fields);
+        List<PartData> parts = new ArrayList<>();
+        for (Entry entry : entries) {
+            if (!authorization.canRead(userId, entry))
+                continue;
+
+            parts.add(entry.toDataTransferObject());
+        }
+
+        return parts;
     }
 
     /**

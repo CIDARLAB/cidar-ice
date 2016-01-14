@@ -2,14 +2,14 @@ package org.jbei.ice.lib.entry;
 
 import org.jbei.ice.lib.access.Authorization;
 import org.jbei.ice.lib.access.PermissionsController;
-import org.jbei.ice.lib.account.model.Account;
-import org.jbei.ice.lib.dao.DAOFactory;
-import org.jbei.ice.lib.dao.hibernate.PermissionDAO;
 import org.jbei.ice.lib.dto.folder.FolderType;
-import org.jbei.ice.lib.entry.model.Entry;
-import org.jbei.ice.lib.folder.Folder;
-import org.jbei.ice.lib.group.Group;
 import org.jbei.ice.lib.group.GroupController;
+import org.jbei.ice.storage.DAOFactory;
+import org.jbei.ice.storage.hibernate.dao.PermissionDAO;
+import org.jbei.ice.storage.model.Account;
+import org.jbei.ice.storage.model.Entry;
+import org.jbei.ice.storage.model.Folder;
+import org.jbei.ice.storage.model.Group;
 
 import java.util.Set;
 
@@ -76,6 +76,19 @@ public class EntryAuthorization extends Authorization<Entry> {
 
     @Override
     public boolean canWrite(String userId, Entry entry) {
+        if (super.canWrite(userId, entry))
+            return true;
+
+        Account account = getAccount(userId);
+
+        // check explicit write permission
+        if (permissionDAO.hasPermissionMulti(entry, null, account, null, false, true))
+            return true;
+
+        return false;
+    }
+
+    public boolean canWriteThoroughCheck(String userId, Entry entry) {
         if (userId == null)
             return false;
 

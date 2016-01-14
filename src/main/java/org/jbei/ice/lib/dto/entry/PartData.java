@@ -1,10 +1,15 @@
 package org.jbei.ice.lib.dto.entry;
 
-import org.jbei.ice.lib.dao.IDataTransferModel;
 import org.jbei.ice.lib.dto.permission.AccessPermission;
+import org.jbei.ice.storage.IDataTransferModel;
 
 import java.util.ArrayList;
 
+/**
+ * Data transfer object for parts and associated meta-data
+ *
+ * @author Hector Plahar
+ */
 public class PartData implements IDataTransferModel {
 
     private static final long serialVersionUID = 1l;
@@ -16,6 +21,7 @@ public class PartData implements IDataTransferModel {
 
     private int index;
     private String recordId;
+    private String versionId;
     private String name;
     private String owner;
     private String ownerEmail;
@@ -76,6 +82,14 @@ public class PartData implements IDataTransferModel {
 
     public void setRecordId(String recordId) {
         this.recordId = recordId;
+    }
+
+    public String getVersionId() {
+        return versionId;
+    }
+
+    public void setVersionId(String versionId) {
+        this.versionId = versionId;
     }
 
     public EntryType getType() {

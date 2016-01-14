@@ -1,6 +1,6 @@
 package org.jbei.ice.lib.dto.bulkupload;
 
-import org.jbei.ice.lib.dao.IDataTransferModel;
+import org.jbei.ice.storage.IDataTransferModel;
 
 /**
  * Represents the complete list of fields for parts.
@@ -31,7 +31,6 @@ public enum EntryField implements IDataTransferModel {
     SELECTION_MARKERS("Selection Markers", true),
     PARENTAL_STRAIN("Parent Strain", false),
     GENOTYPE_OR_PHENOTYPE("Genotype or Phenotype", false),
-    PLASMIDS("Plasmids", false),
     CIRCULAR("Circular", false),
     BACKBONE("Backbone", false),
     PROMOTERS("Promoters", false),
@@ -43,7 +42,8 @@ public enum EntryField implements IDataTransferModel {
     GENERATION("Generation", false),
     SENT_TO_ABRC("Sent to ABRC?", false),
     PLANT_TYPE("Plant Type", false),
-    PARENTS("Parents", false);
+    PARENTS("Parents", false),
+    EXISTING_PART_NUMBER("Existing Part Number", false);
 
     private String label;
     private boolean required;

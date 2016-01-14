@@ -1,27 +1,17 @@
 package org.jbei.ice.lib.entry.sequence.composers.formatters;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
+import org.apache.commons.lang3.StringUtils;
 import org.jbei.ice.lib.common.logging.Logger;
 import org.jbei.ice.lib.dto.ConfigurationKey;
-import org.jbei.ice.lib.entry.model.Entry;
-import org.jbei.ice.lib.models.AnnotationLocation;
-import org.jbei.ice.lib.models.Sequence;
-import org.jbei.ice.lib.models.SequenceFeature;
 import org.jbei.ice.lib.utils.Utils;
+import org.jbei.ice.storage.model.AnnotationLocation;
+import org.jbei.ice.storage.model.Entry;
+import org.jbei.ice.storage.model.Sequence;
+import org.jbei.ice.storage.model.SequenceFeature;
+import org.sbolstandard.core.*;
 
-import org.apache.commons.lang.StringUtils;
-import org.sbolstandard.core.DnaComponent;
-import org.sbolstandard.core.DnaSequence;
-import org.sbolstandard.core.SBOLFactory;
-import org.sbolstandard.core.SequenceAnnotation;
-import org.sbolstandard.core.StrandType;
+import java.net.URI;
+import java.util.*;
 
 /**
  * @author Hector Plahar
