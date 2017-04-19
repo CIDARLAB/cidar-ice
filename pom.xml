@@ -5,7 +5,7 @@
     <artifactId>ice</artifactId>
     <packaging>war</packaging>
     <version>4.6.2</version>
-    <name>ice</name>
+    <name>iceCIDAR</name>
     <description>Inventory of Composable Elements (ICE) for Synthetic Biology</description>
     <repositories>
         <repository>
