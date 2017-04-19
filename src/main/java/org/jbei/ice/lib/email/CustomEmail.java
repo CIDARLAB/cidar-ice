@@ -1,11 +1,9 @@
 package org.jbei.ice.lib.email;
 
-<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/utils/Emailer.java
-=======
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.SimpleEmail;
->>>>>>> 4a78e180a3ad7c24098f5c01dd64c819ead726a0:src/main/java/org/jbei/ice/lib/email/CustomEmail.java
 import org.jbei.ice.lib.common.logging.Logger;
 import org.jbei.ice.lib.dto.ConfigurationKey;
 import org.jbei.ice.lib.utils.Utils;
@@ -38,7 +36,7 @@ public class CustomEmail extends Email {
      * @param subject       Text of subject.
      * @param body          Text of body.
      */
-<<<<<<< HEAD:src/main/java/org/jbei/ice/lib/utils/Emailer.java
+
     public static boolean send(String receiverEmail, String ccEmail, String subject, String body) {
         Properties props = new Properties();
         props.put("mail.smtp.host", "smtp.gmail.com");
@@ -55,16 +53,7 @@ public class CustomEmail extends Email {
                     }
                 });
 
-=======
-    public boolean send(String receiverEmail, String ccEmail, String subject, String body) {
-        String hostName = Utils.getConfigValue(ConfigurationKey.SMTP_HOST);
-        if (StringUtils.isEmpty(hostName)) {
-            return false;
-        }
 
-        org.apache.commons.mail.Email email = new SimpleEmail();
-        email.setHostName(hostName);
->>>>>>> 4a78e180a3ad7c24098f5c01dd64c819ead726a0:src/main/java/org/jbei/ice/lib/email/CustomEmail.java
         try {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(Utils.getConfigValue(ConfigurationKey.ADMIN_EMAIL)));
