@@ -1,17 +1,17 @@
 package org.jbei.ice.services.rest;
 
+import com.google.common.io.ByteStreams;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.jbei.ice.lib.account.UserSessions;
 import org.jbei.ice.lib.bulkupload.FileBulkUpload;
 import org.jbei.ice.lib.common.logging.Logger;
 import org.jbei.ice.lib.config.ConfigurationController;
 import org.jbei.ice.lib.dto.ConfigurationKey;
 import org.jbei.ice.lib.dto.Setting;
 import org.jbei.ice.lib.dto.entry.AttachmentInfo;
+import org.jbei.ice.lib.dto.entry.EntryField;
 import org.jbei.ice.lib.dto.entry.EntryType;
 import org.jbei.ice.lib.dto.entry.SequenceInfo;
 import org.jbei.ice.lib.entry.EntriesAsCSV;
@@ -39,7 +39,9 @@ import javax.ws.rs.core.StreamingOutput;
 import java.io.*;
 import java.net.URI;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Resource for accessing files both locally and remotely
@@ -149,14 +151,11 @@ public class FileResource extends RestResource {
             linked = null;
         }
 
-        final StreamingOutput stream = new StreamingOutput() {
-            @Override
-            public void write(final OutputStream output) throws IOException, WebApplicationException {
-                byte[] template = FileBulkUpload.getCSVTemplateBytes(entryAddType, linked,
-                        "existing".equalsIgnoreCase(linkedType));
-                ByteArrayInputStream stream = new ByteArrayInputStream(template);
-                IOUtils.copy(stream, output);
-            }
+        final StreamingOutput stream = output -> {
+            byte[] template = FileBulkUpload.getCSVTemplateBytes(entryAddType, linked,
+                    "existing".equalsIgnoreCase(linkedType));
+            ByteArrayInputStream input = new ByteArrayInputStream(template);
+            ByteStreams.copy(input, output);
         };
 
         String filename = type.toLowerCase();
@@ -186,13 +185,9 @@ public class FileResource extends RestResource {
             wrapper = sequenceController.getSequenceFile(userId, partId, downloadType);
         }
 
-        StreamingOutput stream = new StreamingOutput() {
-            @Override
-            public void write(final OutputStream output) throws IOException,
-                    WebApplicationException {
-                final ByteArrayInputStream stream = new ByteArrayInputStream(wrapper.getBytes());
-                IOUtils.copy(stream, output);
-            }
+        StreamingOutput stream = output -> {
+            final ByteArrayInputStream input = new ByteArrayInputStream(wrapper.getBytes());
+            ByteStreams.copy(input, output);
         };
 
         return addHeaders(Response.ok(stream), wrapper.getName());
@@ -245,7 +240,7 @@ public class FileResource extends RestResource {
         if (uri != null) {
             try (final InputStream in = uri.toURL().openStream();
                  final OutputStream out = new FileOutputStream(png)) {
-                IOUtils.copy(in, out);
+                ByteStreams.copy(in, out);
             } catch (IOException e) {
                 Logger.error(e);
                 return respond(false);
@@ -269,11 +264,11 @@ public class FileResource extends RestResource {
                                    @FormDataParam("file") FormDataContentDisposition contentDispositionHeader) {
         try {
             if (entryType == null) {
-                return Response.status(Response.Status.BAD_REQUEST).build();
+                entryType = "PART";
             }
 
             final String fileName = contentDispositionHeader.getFileName();
-            final String userId = UserSessions.getUserIdBySession(sessionId);
+            String userId = getUserId();
 
             PartSequence partSequence;
             if (StringUtils.isEmpty(recordId)) {
@@ -307,10 +302,21 @@ public class FileResource extends RestResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response downloadCSV(@QueryParam("sequenceFormats") final List<String> sequenceFormats,
+                                @QueryParam("entryFields") final List<String> fields,
                                 EntrySelection selection) {
         String userId = super.requireUserId();
         EntriesAsCSV entriesAsCSV = new EntriesAsCSV(sequenceFormats.toArray(new String[sequenceFormats.size()]));
-        boolean success = entriesAsCSV.setSelectedEntries(userId, selection);
+        List<EntryField> entryFields = new ArrayList<>();
+        try {
+            if (fields != null) {
+                entryFields.addAll(fields.stream().map(EntryField::fromString).collect(Collectors.toList()));
+            }
+        } catch (Exception e) {
+            Logger.error(e);
+        }
+
+        boolean success = entriesAsCSV.setSelectedEntries(userId, selection,
+                entryFields.toArray(new EntryField[entryFields.size()]));
         if (!success)
             return super.respond(false);
 
