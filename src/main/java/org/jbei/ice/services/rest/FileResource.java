@@ -267,9 +267,11 @@ public class FileResource extends RestResource {
                 entryType = "PART";
             }
 
-            final String fileName = contentDispositionHeader.getFileName();
+            String fileName = contentDispositionHeader.getFileName();
             String userId = getUserId();
-
+            if (fileName == null) {
+                fileName = "tmp.xml";
+            }
             PartSequence partSequence;
             if (StringUtils.isEmpty(recordId)) {
                 EntryType type = EntryType.nameToType(entryType);
